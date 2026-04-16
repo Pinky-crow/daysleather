@@ -199,9 +199,27 @@
         <p class="text-[10px] opacity-30">&copy; 2026 DAY 's Leather. ALL RIGHTS RESERVED.</p>
     </footer>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script type="module">
+    // 1. 導入基礎 App
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    
+    // 2. 導入 Firestore (資料庫)
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    
+    // 🚀 關鍵：導入 Storage 並包含 ref 功能，否則呼叫 ref() 時會噴 E04 的錯誤
+    import { getStorage, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+    const firebaseConfig = {
+        // ... 你的 Config ...
+    };
+
+    // 3. 點名所有的服務
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app); // 👈 這行沒寫，ref(storage, ...) 也會掛掉
+
+    // ... 後面接你的業務邏輯 ...
+</script>
 
         // 🔥 請填入你的 Firebase Config
         const firebaseConfig = {
