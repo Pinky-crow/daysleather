@@ -302,22 +302,43 @@
             cart = [];
             setTimeout(()=>location.reload(), 5000);
         };
+// 確保這幾行有在 script 標籤內
+window.sendCustom = async () => {
+    const email = document.getElementById('cus-email').value;
+    const content = document.getElementById('cus-req').value;
+    if(!email || !content) return alert("請填寫完整資訊");
+    
+    try {
+        await addDoc(collection(db, "inbox"), { 
+            type: "訂製", 
+            email: email, 
+            content: content, 
+            timestamp: new Date() 
+        });
+        alert('需求已成功傳送！');
+        showPage('home'); // 傳送完回到首頁
+    } catch (e) {
+        console.error("傳送失敗: ", e);
+        alert("傳送失敗，請檢查資料庫權限");
+    }
+};
 
-        window.sendCustom = async () => {
-            const email = document.getElementById('cus-email').value;
-            const content = document.getElementById('cus-req').value;
-            await addDoc(collection(db, "inbox"), { type: "訂製", email, content, timestamp: new Date() });
-            alert('我們已收到您的需求！');
-            showPage('home');
-        };
-
-        window.sendQA = async () => {
-            const content = document.getElementById('qa-msg').value;
-            await addDoc(collection(db, "inbox"), { type: "QA問答", content, timestamp: new Date() });
-            alert('訊息已傳送');
-            document.getElementById('qa-msg').value = '';
-        };
-
+window.sendQA = async () => {
+    const msg = document.getElementById('qa-msg').value;
+    if(!msg) return alert("請輸入內容");
+    
+    try {
+        await addDoc(collection(db, "inbox"), { 
+            type: "QA詢問", 
+            content: msg, 
+            timestamp: new Date() 
+        });
+        alert('訊息已送出，職人將盡快回覆');
+        document.getElementById('qa-msg').value = '';
+    } catch (e) {
+        alert("送出失敗");
+    }
+};
         window.copyEmail = (email) => {
             navigator.clipboard.writeText(email).then(()=>alert('已複製 Email'));
         };
