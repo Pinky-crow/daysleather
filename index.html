@@ -214,10 +214,11 @@
     };
 
     // 3. 點名所有的服務
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app); // 👈 這行沒寫，ref(storage, ...) 也會掛掉
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// 🚀 檢查這行！有沒有寫到 ref？
+import { getStorage, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
     // ... 後面接你的業務邏輯 ...
 </script>
 
