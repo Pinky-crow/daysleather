@@ -220,22 +220,19 @@
         let cart = [];
         let curItem = null;
         let allProducts = [];
-
 // 在 index.html 的渲染邏輯中
 onSnapshot(collection(db, "products"), (snap) => {
-    const list = document.getElementById('product-list'); // 確保 ID 跟你的 HTML 一致
+    const list = document.getElementById('product-list');
     list.innerHTML = snap.docs.map(d => {
         const p = d.data();
-
-        // 🚀 核心改動：處理多張圖片的顯示邏輯
-        // 如果有 imgs 陣列且長度大於 0，抓第 1 張；否則顯示預設圖
         const coverImg = (p.imgs && p.imgs.length > 0) ? p.imgs[0] : 'https://via.placeholder.com/300?text=No+Image';
 
         return `
             <div class="bg-white rounded-lg shadow-md overflow-hidden group">
                 <div class="relative h-64 overflow-hidden">
                     <img src="${coverImg}" 
-                         class="w-full h-full object-cover transition duration-500 group-hover:scale-110" 
+                         onclick="openModal(${JSON.stringify(p.imgs || []).replace(/"/g, '&quot;')})" 
+                         class="w-full h-full object-cover transition duration-500 group-hover:scale-110 cursor-pointer" 
                          alt="${p.name}">
                     
                     ${p.imgs && p.imgs.length > 1 ? 
@@ -260,6 +257,7 @@ onSnapshot(collection(db, "products"), (snap) => {
         `;
     }).join('');
 });
+
         window.showPage = (id) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -355,6 +353,44 @@ onSnapshot(collection(db, "products"), (snap) => {
         window.copyEmail = (email) => {
             navigator.clipboard.writeText(email).then(()=>alert('已複製 Email'));
         };
+// 開啟相簿彈窗
+window.openModal = (imgList) => {
+    const modal = document.getElementById('image-preview'); // 注意這裡要對應上面的 ID
+    const modalImg = document.getElementById('modal-img');
+    const thumbContainer = document.getElementById('modal-thumbnails');
+    
+    if (!imgList || imgList.length === 0) return;
+
+    // 顯示彈窗
+    document.getElementById('image-modal').classList.remove('hidden');
+    
+    // 設定第一張為主圖
+    modalImg.src = imgList[0];
+
+    // 生成下方的縮圖
+    thumbContainer.innerHTML = imgList.map((url, index) => `
+        <img src="${url}" 
+             onclick="document.getElementById('modal-img').src='${url}'" 
+             class="w-16 h-16 object-cover rounded cursor-pointer border-2 border-transparent hover:border-white transition">
+    `).join('');
+};
+
+// 關閉相簿彈窗
+window.closeModal = () => {
+    document.getElementById('image-modal').classList.add('hidden');
+};
+
+// 按下鍵盤 Esc 鍵也能關閉
+window.addEventListener('keydown', (e) => {
+    if (e.key === "Escape") closeModal();
+});
     </script>
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex flex-col items-center justify-center p-4">
+    <button onclick="closeModal()" class="absolute top-5 right-5 text-white text-4xl">&times;</button>
+    
+    <img id="modal-img" src="" class="max-w-full max-h-[80vh] object-contain shadow-2xl">
+    
+    <div id="modal-thumbnails" class="flex gap-2 mt-6 overflow-x-auto pb-2 w-full justify-center"></div>
+</div>
 </body>
 </html>
