@@ -296,93 +296,8 @@
 
     <div id="img-modal" onclick="this.style.display='none'"><img id="modal-img"></div>
 
-    <script>
-        const products = [
-            { id: 1, name: "職人手縫長夾", price: 3200, category: "wallet", date: "2023-01-01", img: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=500", desc: "純手工打孔縫製，歲月淬鍊感。" },
-            { id: 2, name: "復古皮革托特包", price: 8500, category: "bag", date: "2024-11-20", img: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500", desc: "大容量設計，適合日常與旅行。" }
-        ];
-
-        let cart = [];
-        let curItem = null;
-        let isLocked = false; 
-
-        function renderItems(data = products) {
-            const grid = document.getElementById('product-grid');
-            const sort = document.getElementById('sortBox').value;
-            let sorted = [...data];
-            if(sort==='high') sorted.sort((a,b)=>b.price-a.price);
-            else if(sort==='low') sorted.sort((a,b)=>a.price-b.price);
-            else if(sort==='classic') sorted.sort((a,b)=>new Date(a.date)-new Date(b.date));
-            else if(sort==='latest') sorted.sort((a,b)=>new Date(b.date)-new Date(a.date));
-
-            grid.innerHTML = sorted.map(p => `
-                <div class="hover-zoom bg-white p-4 rounded shadow-sm text-center" onclick="openDetail(${p.id})">
-                    <img src="${p.img}" class="h-60 w-full object-cover mb-4" style="background-color: var(--main-bg);">
-                    <h4 class="font-bold">${p.name}</h4>
-                    <p class="opacity-50">NT$ ${p.price}</p>
-                </div>
-            `).join('');
-        }
-
-        function filterCat(cat) {
-            if(cat==='all') renderItems(products);
-            else renderItems(products.filter(p=>p.category===cat));
-        }
-
-        function openDetail(id) {
-            curItem = products.find(p=>p.id===id);
-            document.getElementById('det-img').src = curItem.img;
-            document.getElementById('det-name').innerText = curItem.name;
-            document.getElementById('det-price').innerText = `NT$ ${curItem.price}`;
-            document.getElementById('det-desc').innerText = curItem.desc;
-            showPage('item-detail');
-        }
-
-        function openImageModal(src) {
-            const m = document.getElementById('img-modal');
-            document.getElementById('modal-img').src = src;
-            m.style.display = 'flex';
-        }
-
-        function updateCart() {
-            const list = document.getElementById('cart-list');
-            let total = 0;
-            list.innerHTML = cart.map((item, idx) => {
-                total += item.price * item.qty;
-                return `
-                    <div class="flex items-center gap-4 border-b pb-4">
-                        <button onclick="removeCart(${idx})" class="text-red-400">✕</button>
-                        <img src="${item.img}" class="w-20 h-20 object-cover">
-                        <div class="flex-1 flex justify-between">
-                            <div><h5 class="font-bold">${item.name}</h5><p class="text-sm">NT$ ${item.price} x ${item.qty}</p></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            document.getElementById('cart-total').innerText = total;
-            document.querySelectorAll('.final-amt').forEach(el=>el.innerText = total);
-        }
-
-        function addToCartDetail() {
-            const qty = parseInt(document.getElementById('det-qty').value);
-            const exist = cart.find(i=>i.id===curItem.id);
-            if(exist) exist.qty += qty; else cart.push({...curItem, qty});
-            updateCart(); alert('已加入購物車');
-        }
-
-        function quickBuy(id) {
-            const p = products.find(x=>x.id===id);
-            cart = [{...p, qty: 1}];
-            updateCart(); toStep1(); showPage('cart_view');
-        }
-
-        function buyNow() {
-            cart = [{...curItem, qty: parseInt(document.getElementById('det-qty').value)}];
-            updateCart(); toStep1(); showPage('cart_view');
-        }
-
-        function removeCart(idx) { cart.splice(idx,1); updateCart(); }
-	import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
@@ -406,7 +321,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
         const firebaseConfig = {
-            apiKey: "你的API鍵",
+            apiKey: "你的API金鑰",
             authDomain: "你的專案ID.firebaseapp.com",
             projectId: "你的專案ID",
             storageBucket: "你的專案ID.appspot.com",
@@ -417,85 +332,124 @@ const analytics = getAnalytics(app);
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let allProducts = [];
+        // --- 變數設定 ---
         let cart = [];
         let curItem = null;
         let isLocked = false;
-        // --- 1. 抓取 Firebase 資料 ---
-        onSnapshot(collection(db, "products"), (snap) => {
-            allProducts = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            renderItems();
-            updateNews();
+        let allProducts = []; // 用來存從資料庫抓下來的商品
+
+        // 🔥 2. 自動監聽資料庫（這讓你在後台改商品，前台會自動變）
+        onSnapshot(collection(db, "products"), (snapshot) => {
+            allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderItems(allProducts); 
         });
 
-        onSnapshot(collection(db, "qa_data"), (snap) => {
-            const list = document.getElementById('qa-list');
-            list.innerHTML = snap.docs.map(doc => {
-                const d = doc.data();
-                return `<details class="bg-white p-4 rounded shadow-sm"><summary class="font-bold">${d.question}</summary><p class="mt-2 opacity-60">${d.answer || '處理中...'}</p></details>`;
-            }).join('');
-        });
-
-        // --- 結帳流程 ---
-        function toStep1() { hideSteps(); document.getElementById('step-1').classList.remove('hidden'); setStep(1); }
-        function toStep2() { if(cart.length===0) return alert('空購物車'); hideSteps(); document.getElementById('step-2').classList.remove('hidden'); setStep(2); }
-        
-        function validateStep2() {
-            const f = ['email','name','phone','addr'];
-            let ok = true;
-            f.forEach(id=>{
-                const el = document.getElementById('f-'+id);
-                const hint = document.getElementById('err-'+id);
-                if(!el.value.trim()){ hint.style.display='block'; ok=false; } else hint.style.display='none';
-            });
-            if(ok) {
-                hideSteps(); document.getElementById('step-3').classList.remove('hidden'); setStep(3);
-                const m = document.getElementById('pay-method').value;
-                document.getElementById('info-bank').classList.toggle('hidden', m!=='bank');
-                document.getElementById('info-paypal').classList.toggle('hidden', m!=='paypal');
-            }
-        }
-
-        function finishOrder() {
-            if(isLocked) return; isLocked = true;
-            hideSteps(); document.getElementById('step-4').classList.remove('hidden'); setStep(4);
-            setTimeout(()=>location.reload(), 5000);
-        }
-
-        function sendCustom() {
-            if(isLocked) return;
-            const email = document.getElementById('cus-email');
-            const req = document.getElementById('cus-req');
-            let ok = true;
-            if(!email.value.trim()){ document.getElementById('err-cus-email').style.display='block'; ok=false; } else document.getElementById('err-cus-email').style.display='none';
-            if(!req.value.trim()){ document.getElementById('err-cus-req').style.display='block'; ok=false; } else document.getElementById('err-cus-req').style.display='none';
-            
-            if(ok) {
-                isLocked = true;
-                showPage('custom_finish');
-                setTimeout(()=> { showPage('home'); isLocked = false; }, 5000);
-            }
-        }
-
-        function sendQA() { alert('問題已送至後台'); document.getElementById('qa-msg').value=''; }
-
-        function copyEmail(email) {
-            navigator.clipboard.writeText(email).then(()=>alert('已複製 Email: ' + email));
-        }
-
-        function hideSteps() { for(let i=1;i<=4;i++) document.getElementById('step-'+i).classList.add('hidden'); }
-        function setStep(n) { 
-            for(let i=1;i<=4;i++) document.getElementById('ps-'+i).classList.remove('active');
-            for(let i=1;i<=n;i++) document.getElementById('ps-'+i).classList.add('active');
-        }
-
-        function showPage(id) {
+        // --- 原有的 UI 功能 (保留並微調) ---
+        window.showPage = (id) => {
             document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             window.scrollTo(0,0);
-        }
+        };
 
-        renderItems();
+        window.renderItems = (data = allProducts) => {
+            const grid = document.getElementById('product-grid');
+            if(!grid) return;
+            const sort = document.getElementById('sortBox').value;
+            let sorted = [...data];
+            if(sort==='high') sorted.sort((a,b)=>b.price-a.price);
+            else if(sort==='low') sorted.sort((a,b)=>a.price-b.price);
+            grid.innerHTML = sorted.map(p => `
+                <div class="hover-zoom bg-white p-4 rounded shadow-sm text-center" onclick="openDetail('${p.id}')">
+                    <img src="${p.img}" class="h-60 w-full object-cover mb-4" style="background-color: var(--main-bg);">
+                    <h4 class="font-bold">${p.name}</h4>
+                    <p class="opacity-50">NT$ ${p.price}</p>
+                </div>
+            `).join('');
+        };
+
+        window.openDetail = (id) => {
+            curItem = allProducts.find(p=>p.id===id);
+            document.getElementById('det-img').src = curItem.img;
+            document.getElementById('det-name').innerText = curItem.name;
+            document.getElementById('det-price').innerText = `NT$ ${curItem.price}`;
+            document.getElementById('det-desc').innerText = curItem.desc || "";
+            showPage('item-detail');
+        };
+
+        // 🔥 3. 結帳功能：點擊「結帳完成」時存入 Firebase
+        window.finishOrder = async () => {
+            if(isLocked || cart.length === 0) return;
+            isLocked = true;
+
+            const orderData = {
+                customer: document.getElementById('f-name').value,
+                gmail: document.getElementById('f-email').value,
+                phone: document.getElementById('f-phone').value,
+                address: document.getElementById('f-addr').value,
+                items: cart,
+                total: document.getElementById('cart-total').innerText,
+                timestamp: new Date()
+            };
+
+            try {
+                await addDoc(collection(db, "orders"), orderData);
+                hideSteps(); 
+                document.getElementById('step-4').classList.remove('hidden'); 
+                setStep(4);
+                setTimeout(()=>location.reload(), 5000);
+            } catch (e) {
+                alert("儲存失敗: " + e.message);
+                isLocked = false;
+            }
+        };
+
+        // 🔥 4. 傳送諮詢/QA 到 Firebase
+        window.sendCustom = async () => {
+            const email = document.getElementById('cus-email').value;
+            const content = document.getElementById('cus-req').value;
+            if(!email || !content) return alert("請填寫完整");
+            await addDoc(collection(db, "inbox"), { type: "訂製", email, content, timestamp: new Date() });
+            showPage('custom_finish');
+        };
+
+        window.sendQA = async () => {
+            const msg = document.getElementById('qa-msg').value;
+            if(!msg) return;
+            await addDoc(collection(db, "inbox"), { type: "QA留言", content: msg, timestamp: new Date() });
+            alert('問題已送至後台');
+            document.getElementById('qa-msg').value='';
+        };
+
+        // --- 購物車輔助功能 ---
+        window.addToCartDetail = () => {
+            const qty = parseInt(document.getElementById('det-qty').value);
+            const exist = cart.find(i=>i.id===curItem.id);
+            if(exist) exist.qty += qty; else cart.push({...curItem, qty});
+            updateCart(); alert('已加入購物車');
+        };
+        window.updateCart = () => {
+            const list = document.getElementById('cart-list');
+            let total = 0;
+            list.innerHTML = cart.map((item, idx) => {
+                total += item.price * item.qty;
+                return `<div class="flex items-center gap-4 border-b pb-4">
+                    <button onclick="removeCart(${idx})" class="text-red-400">✕</button>
+                    <img src="${item.img}" class="w-20 h-20 object-cover">
+                    <div class="flex-1"><h5>${item.name}</h5><p>NT$ ${item.price} x ${item.qty}</p></div>
+                </div>`;
+            }).join('');
+            document.getElementById('cart-total').innerText = total;
+            document.querySelectorAll('.final-amt').forEach(el=>el.innerText = total);
+        };
+        window.removeCart = (idx) => { cart.splice(idx,1); updateCart(); };
+        window.hideSteps = () => { for(let i=1;i<=4;i++) document.getElementById('step-'+i).classList.add('hidden'); };
+        window.setStep = (n) => { 
+            for(let i=1;i<=4;i++) document.getElementById('ps-'+i).classList.remove('active');
+            for(let i=1;i<=n;i++) document.getElementById('ps-'+i).classList.add('active');
+        };
+        window.toStep1 = () => { hideSteps(); document.getElementById('step-1').classList.remove('hidden'); setStep(1); };
+        window.toStep2 = () => { if(cart.length===0) return alert('空購物車'); hideSteps(); document.getElementById('step-2').classList.remove('hidden'); setStep(2); };
+        window.copyEmail = (email) => { navigator.clipboard.writeText(email).then(()=>alert('已複製 Email')); };
     </script>
 </body>
 </html>
