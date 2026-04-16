@@ -283,20 +283,21 @@ onSnapshot(collection(db, "products"), (snap) => {
             window.scrollTo(0,0);
         };
 
-        window.renderItems = () => {
-            const grid = document.getElementById('product-grid');
-            const sort = document.getElementById('sortBox').value;
-            let data = [...allProducts];
-            if(sort==='high') data.sort((a,b)=>b.price-a.price);
-            if(sort==='low') data.sort((a,b)=>a.price-b.price);
-            grid.innerHTML = data.map(p => `
-                <div class="bg-white p-4 rounded shadow-sm hover-zoom cursor-pointer" onclick="openDetail('${p.id}')">
-                    <img src="${p.img}" class="h-60 w-full object-cover mb-4">
-                    <h4 class="font-bold">${p.name}</h4>
-                    <p class="opacity-50">NT$ ${p.price}</p>
+       window.renderItems = () => {
+    const grid = document.getElementById('product-grid');
+    // ... 排序邏輯 ...
+
+    grid.innerHTML = data.map(p => {
+        // 🚀 不要在這裡用 ref()！直接用存好的 URL
+        const coverImg = (p.imgs && p.imgs.length > 0) ? p.imgs[0] : (p.img || 'https://via.placeholder.com/300');
+        
+        return `
+            <div class="product-card">
+                <img src="${coverImg}" onclick="openModal(${JSON.stringify(p.imgs || []).replace(/"/g, '&quot;')})">
                 </div>
-            `).join('');
-        };
+        `;
+    }).join('');
+};
 
         window.openDetail = (id) => {
             curItem = allProducts.find(p => p.id === id);
