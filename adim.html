@@ -2,74 +2,131 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>DAY 's Leather | 後台管理</title>
+    <title>DAY 's Leather | 職人管理後台</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #f4f1ee; font-family: sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
 </head>
-<body class="bg-gray-100 flex">
-    <nav class="w-64 bg-stone-900 text-white min-h-screen p-6">
-        <h2 class="text-2xl font-bold mb-10">系統後台</h2>
-        <div class="space-y-4">
-            <a href="#" class="block hover:text-amber-500">📦 商品管理</a>
-            <a href="#" class="block hover:text-amber-500">📩 訊息中心</a>
-        </div>
-    </nav>
+<body class="p-8">
 
-    <main class="flex-1 p-10">
-        <div class="bg-white p-6 rounded shadow mb-10">
-            <h3 class="text-xl font-bold mb-4">新增商品</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <input type="text" id="p-name" placeholder="商品名稱" class="border p-2">
-                <input type="number" id="p-price" placeholder="價格" class="border p-2">
-                <input type="text" id="p-img" placeholder="圖片連結" class="border p-2">
-                <input type="text" id="p-cat" placeholder="分類" class="border p-2">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 border-b-2 border-stone-800 pb-2">管理後台</h1>
+
+        <div class="flex gap-4 mb-8">
+            <button onclick="showTab('tab-products')" class="px-6 py-2 bg-stone-800 text-white rounded">商品管理</button>
+            <button onclick="showTab('tab-orders')" class="px-6 py-2 bg-stone-600 text-white rounded">查看訂單</button>
+            <button onclick="showTab('tab-inbox')" class="px-6 py-2 bg-stone-600 text-white rounded">諮詢與留言</button>
+        </div>
+
+        <div id="tab-products" class="tab-content active">
+            <div class="bg-white p-6 rounded shadow-sm mb-8">
+                <h2 class="text-xl font-bold mb-4">新增商品</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="p-name" placeholder="商品名稱" class="border p-2">
+                    <input type="number" id="p-price" placeholder="價格" class="border p-2">
+                    <input type="text" id="p-img" placeholder="圖片網址 (可用 Unsplash 連結)" class="border p-2">
+                    <input type="text" id="p-desc" placeholder="商品簡介" class="border p-2">
+                </div>
+                <button onclick="addProduct()" class="mt-4 w-full py-2 bg-green-700 text-white font-bold rounded">上架商品</button>
             </div>
-            <button onclick="addProduct()" class="mt-4 bg-stone-800 text-white px-6 py-2">上架</button>
+            <div id="admin-product-list" class="grid grid-cols-1 gap-4">
+                </div>
         </div>
 
-        <div class="bg-white p-6 rounded shadow">
-            <h3 class="text-xl font-bold mb-4">客戶訊息 (訂製/QA)</h3>
-            <table class="w-full text-left">
-                <thead><tr class="bg-gray-200">
-                    <th class="p-2">類型</th><th class="p-2">Gmail</th><th class="p-2">內容</th>
-                </tr></thead>
-                <tbody id="inbox-table"></tbody>
-            </table>
+        <div id="tab-orders" class="tab-content">
+            <h2 class="text-xl font-bold mb-4">所有訂單</h2>
+            <div id="admin-order-list" class="space-y-4"></div>
         </div>
-    </main>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        <div id="tab-inbox" class="tab-content">
+            <h2 class="text-xl font-bold mb-4">客戶留言與訂製需求</h2>
+            <div id="admin-inbox-list" class="space-y-4"></div>
+        </div>
+    </div>
 
-    const firebaseConfig = { /* 同前端 Config */ };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 新增商品
-    window.addProduct = async () => {
-        await addDoc(collection(db, "products"), {
-            name: document.getElementById('p-name').value,
-            price: document.getElementById('p-price').value,
-            img: document.getElementById('p-img').value,
-            category: document.getElementById('p-cat').value,
-            createdAt: new Date()
+        // 🔥 請填入你的 Firebase Config (必須與前台一致)
+        const firebaseConfig = {
+  apiKey: "AIzaSyAxxZyzRf_Tesn8ORTrhH1hQYDLcCspbkQ",
+  authDomain: "daysleather-bdf5f.firebaseapp.com",
+  projectId: "daysleather-bdf5f",
+  storageBucket: "daysleather-bdf5f.firebasestorage.app",
+  messagingSenderId: "386894795053",
+  appId: "1:386894795053:web:1532696f841ac4842383a4",
+  measurementId: "G-9FRJ79CHM5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- 分頁切換 ---
+        window.showTab = (id) => {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        };
+
+        // --- 商品管理邏輯 ---
+        window.addProduct = async () => {
+            const name = document.getElementById('p-name').value;
+            const price = Number(document.getElementById('p-price').value);
+            const img = document.getElementById('p-img').value;
+            const desc = document.getElementById('p-desc').value;
+            if(!name || !price || !img) return alert('請填寫完整資訊');
+            await addDoc(collection(db, "products"), { name, price, img, desc, timestamp: new Date() });
+            alert('上架成功！');
+            document.querySelectorAll('input').forEach(i => i.value = '');
+        };
+
+        window.deleteProduct = async (id) => {
+            if(confirm('確定要下架此商品嗎？')) await deleteDoc(doc(db, "products", id));
+        };
+
+        onSnapshot(collection(db, "products"), (snap) => {
+            const list = document.getElementById('admin-product-list');
+            list.innerHTML = snap.docs.map(d => {
+                const p = d.data();
+                return `<div class="bg-white p-4 flex justify-between items-center shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <img src="${p.img}" class="w-12 h-12 object-cover">
+                        <div><p class="font-bold">${p.name}</p><p class="text-sm text-gray-500">NT$ ${p.price}</p></div>
+                    </div>
+                    <button onclick="deleteProduct('${d.id}')" class="text-red-500">下架</button>
+                </div>`;
+            }).join('');
         });
-        alert("上架成功！");
-    };
 
-    // 即時顯示訊息
-    onSnapshot(query(collection(db, "inbox"), orderBy("timestamp", "desc")), (snap) => {
-        const table = document.getElementById('inbox-table');
-        table.innerHTML = "";
-        snap.forEach(doc => {
-            const m = doc.data();
-            table.innerHTML += `<tr class="border-b">
-                <td class="p-2">${m.type}</td>
-                <td class="p-2">${m.gmail}</td>
-                <td class="p-2">${m.content}</td>
-            </tr>`;
+        // --- 訂單讀取 ---
+        onSnapshot(collection(db, "orders"), (snap) => {
+            const list = document.getElementById('admin-order-list');
+            list.innerHTML = snap.docs.map(d => {
+                const o = d.data();
+                return `<div class="bg-white p-4 rounded shadow-sm">
+                    <p class="font-bold text-lg">客戶：${o.name || '未提供'}</p>
+                    <p class="text-sm text-gray-500">時間：${o.timestamp?.toDate().toLocaleString() || ''}</p>
+                    <div class="my-2 border-y py-2 text-sm">${o.items.map(i => `${i.name} x ${i.qty}`).join('<br>')}</div>
+                    <p class="font-bold text-amber-800">總計：NT$ ${o.total}</p>
+                </div>`;
+            }).join('');
         });
-    });
-</script>
+
+        // --- 留言讀取 ---
+        onSnapshot(collection(db, "inbox"), (snap) => {
+            const list = document.getElementById('admin-inbox-list');
+            list.innerHTML = snap.docs.map(d => {
+                const m = d.data();
+                return `<div class="bg-white p-4 rounded shadow-sm border-l-4 border-stone-800">
+                    <p class="text-xs font-bold text-stone-500 uppercase">${m.type}</p>
+                    <p class="my-2">${m.content}</p>
+                    <p class="text-xs text-gray-400">來自：${m.email || '匿名'}</p>
+                </div>`;
+            }).join('');
+        });
+    </script>
 </body>
 </html>
