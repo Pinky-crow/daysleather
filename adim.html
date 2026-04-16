@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>DAY 's Leather | 後台管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex">
+    <nav class="w-64 bg-stone-900 text-white min-h-screen p-6">
+        <h2 class="text-2xl font-bold mb-10">系統後台</h2>
+        <div class="space-y-4">
+            <a href="#" class="block hover:text-amber-500">📦 商品管理</a>
+            <a href="#" class="block hover:text-amber-500">📩 訊息中心</a>
+        </div>
+    </nav>
+
+    <main class="flex-1 p-10">
+        <div class="bg-white p-6 rounded shadow mb-10">
+            <h3 class="text-xl font-bold mb-4">新增商品</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="p-name" placeholder="商品名稱" class="border p-2">
+                <input type="number" id="p-price" placeholder="價格" class="border p-2">
+                <input type="text" id="p-img" placeholder="圖片連結" class="border p-2">
+                <input type="text" id="p-cat" placeholder="分類" class="border p-2">
+            </div>
+            <button onclick="addProduct()" class="mt-4 bg-stone-800 text-white px-6 py-2">上架</button>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow">
+            <h3 class="text-xl font-bold mb-4">客戶訊息 (訂製/QA)</h3>
+            <table class="w-full text-left">
+                <thead><tr class="bg-gray-200">
+                    <th class="p-2">類型</th><th class="p-2">Gmail</th><th class="p-2">內容</th>
+                </tr></thead>
+                <tbody id="inbox-table"></tbody>
+            </table>
+        </div>
+    </main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = { /* 同前端 Config */ };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 新增商品
+    window.addProduct = async () => {
+        await addDoc(collection(db, "products"), {
+            name: document.getElementById('p-name').value,
+            price: document.getElementById('p-price').value,
+            img: document.getElementById('p-img').value,
+            category: document.getElementById('p-cat').value,
+            createdAt: new Date()
+        });
+        alert("上架成功！");
+    };
+
+    // 即時顯示訊息
+    onSnapshot(query(collection(db, "inbox"), orderBy("timestamp", "desc")), (snap) => {
+        const table = document.getElementById('inbox-table');
+        table.innerHTML = "";
+        snap.forEach(doc => {
+            const m = doc.data();
+            table.innerHTML += `<tr class="border-b">
+                <td class="p-2">${m.type}</td>
+                <td class="p-2">${m.gmail}</td>
+                <td class="p-2">${m.content}</td>
+            </tr>`;
+        });
+    });
+</script>
+</body>
+</html>
