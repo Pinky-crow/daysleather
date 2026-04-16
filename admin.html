@@ -24,13 +24,16 @@
         <div id="tab-products" class="tab-content active">
             <div class="bg-white p-6 rounded shadow-sm mb-8">
                 <h2 class="text-xl font-bold mb-4">新增商品</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="p-name" placeholder="商品名稱" class="border p-2">
-                    <input type="number" id="p-price" placeholder="價格" class="border p-2">
-                    <input type="text" id="p-img" placeholder="圖片網址 (可用 Unsplash 連結)" class="border p-2">
-                    <input type="text" id="p-desc" placeholder="商品簡介" class="border p-2">
-                </div>
-                <button onclick="addProduct()" class="mt-4 w-full py-2 bg-green-700 text-white font-bold rounded">上架商品</button>
+<div class="grid grid-cols-2 gap-4">
+    <input type="text" id="p-name" placeholder="商品名稱" class="border p-2">
+    <input type="number" id="p-price" placeholder="價格" class="border p-2">
+    <div class="col-span-2">
+        <label class="block text-sm mb-1">上傳商品圖片：</label>
+        <input type="file" id="p-file" accept="image/*" class="w-full border p-2 bg-white">
+    </div>
+    <input type="text" id="p-desc" placeholder="商品簡介" class="border p-2 col-span-2">
+</div>
+<button onclick="addProduct()" id="upload-btn" class="mt-4 w-full py-2 bg-green-700 text-white font-bold rounded">上架商品 (含圖片上傳)</button>
             </div>
             <div id="admin-product-list" class="grid grid-cols-1 gap-4">
                 </div>
