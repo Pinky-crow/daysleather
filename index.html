@@ -178,9 +178,11 @@
     <div id="contact" class="page py-32 text-center">
         <h2 class="text-3xl font-bold mb-10">CONTACT US</h2>
         <div class="flex flex-col gap-6 text-xl">
-            <a href="#" class="hover-zoom">Instagram</a>
-            <a href="#" class="hover-zoom">Facebook</a>
-            <div class="cursor-pointer font-bold text-amber-900" onclick="copyEmail('daysleather@gmail.com')">Gmail: daysleather@gmail.com (點擊複製)</div>
+    <div class="flex flex-col gap-6 text-xl">
+        <a href="https://www.instagram.com/daysleather/" target="_blank" class="hover-zoom">Instagram</a>
+	    <a href="https://www.facebook.com/你的專頁名稱" target="_blank" class="hover-zoom">Facebook</a>
+    	<a href="https://www.threads.net/@你的帳號" target="_blank" class="hover-zoom">Threads</a>
+            <div class="cursor-pointer font-bold text-amber-900" onclick="copyEmail('daysleather@gmail.com')">Gmail: daysleather@gmail.com </div>
         </div>
     </div>
 
@@ -220,7 +222,6 @@ import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstati
 // 🚀 檢查這行！有沒有寫到 ref？
 import { getStorage, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
     // ... 後面接你的業務邏輯 ...
-</script>
 
         // 🔥 請填入你的 Firebase Config
         const firebaseConfig = {
@@ -276,6 +277,16 @@ onSnapshot(collection(db, "products"), (snap) => {
         `;
     }).join('');
 });
+const products = [
+            { id: 1, name: "馬皮零錢包", price: 3200, category: "horseleather", date: "2026-03-19", imgs: [
+            "https://images.unsplash.com/photo-1627123424574-724758594e93?w=800",
+            "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800",
+            "https://images.unsplash.com/photo-1473188588955-71910bb7c333?w=800"
+        ], desc: "馬皮其耐磨的特性，常用來製作服飾等長摩擦的物品，零錢包將會是長期且經常使用的物品，利用馬皮的特性可擁有較長的使用壽命。" },
+	    { id: 2, name: "維克托眼鏡盒", price: 2500, category: "horseleather", date: "2025-12-21", img: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=500", desc: "襯衫太難掛太陽眼鏡，這個眼鏡盒可以幫助你，優雅簡約可以完美搭配你的風格" },
+	    { id: 3, name: "維克托後背包", price: 9900, category: "victor", date: "2025-12-14", img: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=500", desc: "一件能讓你眼前一亮的背包，往往不需要過於華麗的裝飾。" },
+            { id: 4, name: "馬皮錢包", price: 8500, category: "horseleather", date: "2026-02-24", img: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500", desc: "馬皮其耐磨的特性，常用來製作服飾等長摩擦的物品。以馬皮製作錢包，是為了能在保有皮革的觸感的同時，延長錢包本身的使用壽命" }
+      ];
 
         window.showPage = (id) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
