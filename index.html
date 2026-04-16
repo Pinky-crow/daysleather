@@ -306,194 +306,214 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 這裡貼上你從 Firebase Console 取得的 Config (金鑰)
+    // ✅ 修正 1：補齊了 measurementId 漏掉的引號
     const firebaseConfig = {
-  apiKey: "AIzaSyAxxZyzRf_Tesn8ORTrhH1hQYDLcCspbkQ",
-  authDomain: "daysleather-bdf5f.firebaseapp.com",
-  projectId: "daysleather-bdf5f",
-  storageBucket: "daysleather-bdf5f.firebasestorage.app",
-  messagingSenderId: "386894795053",
-  appId: "1:386894795053:web:1532696f841ac4842383a4",
-  measurementId: "G-9FRJ79CHM5
+        apiKey: "AIzaSyAxxZyzRf_Tesn8ORTrhH1hQYDLcCspbkQ",
+        authDomain: "daysleather-bdf5f.firebaseapp.com",
+        projectId: "daysleather-bdf5f",
+        storageBucket: "daysleather-bdf5f.firebasestorage.app",
+        messagingSenderId: "386894795053",
+        appId: "1:386894795053:web:1532696f841ac4842383a4",
+        measurementId: "G-9FRJ79CHM5" 
     };
 
     // 初始化 Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-        let products = []; // 先設為空的，等聯網抓資料
+    let products = []; 
 
-// 🚀 關鍵：從 Firestore 讀取名為 "products" 的集合
-onSnapshot(collection(db, "products"), (snapshot) => {
-    products = snapshot.docs.map(doc => ({
-        id: doc.id,         // 文件 ID
-        ...doc.data()      // 裡面的 name, price, imgs (陣列), desc
-    }));
-    
-    // 抓到資料後，立刻畫出網頁內容
-    renderItems(products); 
-});
+    // 監聽從 Firestore 讀取資料
+    onSnapshot(collection(db, "products"), (snapshot) => {
+        products = snapshot.docs.map(doc => ({
+            id: doc.id,         
+            ...doc.data()      
+        }));
+        renderItems(products); 
+    });
 
-        let cart = [];
-        let curItem = null;
-        let isLocked = false; 
+    let cart = [];
+    let curItem = null;
+    let isLocked = false; 
 
-        function renderItems(data = products) {
-            const grid = document.getElementById('product-grid');
-            const sort = document.getElementById('sortBox').value;
-            let sorted = [...data];
-            if(sort==='high') sorted.sort((a,b)=>b.price-a.price);
-            else if(sort==='low') sorted.sort((a,b)=>a.price-b.price);
-            else if(sort==='classic') sorted.sort((a,b)=>new Date(a.date)-new Date(b.date));
-            else if(sort==='latest') sorted.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    function renderItems(data = products) {
+        const grid = document.getElementById('product-grid');
+        const sortBox = document.getElementById('sortBox');
+        const sort = sortBox ? sortBox.value : 'latest'; // 防止 sortBox 不存在時出錯
+        
+        let sorted = [...data];
+        if(sort==='high') sorted.sort((a,b)=>b.price-a.price);
+        else if(sort==='low') sorted.sort((a,b)=>a.price-b.price);
+        else if(sort==='classic') sorted.sort((a,b)=>new Date(a.date)-new Date(b.date));
+        else if(sort==='latest') sorted.sort((a,b)=>new Date(b.date)-new Date(a.date));
 
-            grid.innerHTML = sorted.map(p => `
-                <div class="hover-zoom bg-white p-4 rounded shadow-sm text-center" onclick="openDetail(${p.id})">
-                    <img src="${p.img}" class="h-60 w-full object-cover mb-4" style="background-color: var(--main-bg);">
-                    <h4 class="font-bold">${p.name}</h4>
-                    <p class="opacity-50">NT$ ${p.price}</p>
+        grid.innerHTML = sorted.map(p => `
+            <div class="hover-zoom bg-white p-4 rounded shadow-sm text-center cursor-pointer" onclick="openDetail('${p.id}')">
+                <img src="${(p.imgs && p.imgs[0]) ? p.imgs[0] : 'https://via.placeholder.com/300'}" class="h-60 w-full object-cover mb-4" style="background-color: var(--main-bg);">
+                <h4 class="font-bold">${p.name}</h4>
+                <p class="opacity-50">NT$ ${p.price}</p>
+            </div>
+        `).join('');
+    }
+
+    function filterCat(cat) {
+        if(cat==='all') renderItems(products);
+        else renderItems(products.filter(p=>p.category===cat));
+    }
+
+    function openDetail(id) {
+        // ✅ 修正 3：Firebase ID 是字串，確保比對正確
+        curItem = products.find(p => p.id === id);
+        if(!curItem) return;
+
+        const mainImg = document.getElementById('det-img');
+        // 確保 imgs 存在才讀取
+        mainImg.src = (curItem.imgs && curItem.imgs[0]) ? curItem.imgs[0] : '';
+
+        const thumbBar = document.getElementById('thumb-bar');
+        if (curItem.imgs && thumbBar) {
+            thumbBar.innerHTML = curItem.imgs.map(url => `
+                <div class="w-1/3 cursor-pointer border-2 border-transparent hover:border-stone-800 transition-all overflow-hidden rounded">
+                    <img src="${url}" class="w-full h-20 object-cover" onclick="changeMainImg('${url}')">
                 </div>
             `).join('');
         }
 
-        function filterCat(cat) {
-            if(cat==='all') renderItems(products);
-            else renderItems(products.filter(p=>p.category===cat));
-        }
-
-  // B 部分：修改後的開啟詳情頁函數
-function openDetail(id) {
-    curItem = products.find(p => p.id === id);
-    
-    // 1. 設定初始主圖為第一張
-    const mainImg = document.getElementById('det-img');
-    mainImg.src = curItem.imgs[0];
-
-    // 2. 在 thumb-bar 裡面生成三張縮圖的 HTML
-    const thumbBar = document.getElementById('thumb-bar');
-    thumbBar.innerHTML = curItem.imgs.map(url => `
-        <div class="w-1/3 cursor-pointer border-2 border-transparent hover:border-stone-800 transition-all overflow-hidden rounded">
-            <img src="${url}" class="w-full h-20 object-cover" onclick="changeMainImg('${url}')">
-        </div>
-    `).join('');
-
-    // 3. 填入名稱、價格、描述
-    document.getElementById('det-name').innerText = curItem.name;
-    document.getElementById('det-price').innerText = `NT$ ${curItem.price}`;
-    document.getElementById('det-desc').innerText = curItem.desc;
-    
-    showPage('item-detail');
-}
-
-// B 部分：新增這個函數，處理點擊縮圖切換主圖
-function changeMainImg(url) {
-    document.getElementById('det-img').src = url;
-}
-
-        function openImageModal(src) {
-            const m = document.getElementById('img-modal');
-            document.getElementById('modal-img').src = src;
-            m.style.display = 'flex';
-        }
-
-        function updateCart() {
-            const list = document.getElementById('cart-list');
-            let total = 0;
-            list.innerHTML = cart.map((item, idx) => {
-                total += item.price * item.qty;
-                return `
-                    <div class="flex items-center gap-4 border-b pb-4">
-                        <button onclick="removeCart(${idx})" class="text-red-400">✕</button>
-                        <img src="${item.img}" class="w-20 h-20 object-cover">
-                        <div class="flex-1 flex justify-between">
-                            <div><h5 class="font-bold">${item.name}</h5><p class="text-sm">NT$ ${item.price} x ${item.qty}</p></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            document.getElementById('cart-total').innerText = total;
-            document.querySelectorAll('.final-amt').forEach(el=>el.innerText = total);
-        }
-
-        function addToCartDetail() {
-            const qty = parseInt(document.getElementById('det-qty').value);
-            const exist = cart.find(i=>i.id===curItem.id);
-            if(exist) exist.qty += qty; else cart.push({...curItem, qty});
-            updateCart(); alert('已加入購物車');
-        }
-
-        function quickBuy(id) {
-            const p = products.find(x=>x.id===id);
-            cart = [{...p, qty: 1}];
-            updateCart(); toStep1(); showPage('cart_view');
-        }
-
-        function buyNow() {
-            cart = [{...curItem, qty: parseInt(document.getElementById('det-qty').value)}];
-            updateCart(); toStep1(); showPage('cart_view');
-        }
-
-        function removeCart(idx) { cart.splice(idx,1); updateCart(); }
-
-        // --- 結帳流程 ---
-        function toStep1() { hideSteps(); document.getElementById('step-1').classList.remove('hidden'); setStep(1); }
-        function toStep2() { if(cart.length===0) return alert('空購物車'); hideSteps(); document.getElementById('step-2').classList.remove('hidden'); setStep(2); }
+        document.getElementById('det-name').innerText = curItem.name;
+        document.getElementById('det-price').innerText = `NT$ ${curItem.price}`;
+        document.getElementById('det-desc').innerText = curItem.desc;
         
-        function validateStep2() {
-            const f = ['email','name','phone','addr'];
-            let ok = true;
-            f.forEach(id=>{
-                const el = document.getElementById('f-'+id);
-                const hint = document.getElementById('err-'+id);
-                if(!el.value.trim()){ hint.style.display='block'; ok=false; } else hint.style.display='none';
-            });
-            if(ok) {
-                hideSteps(); document.getElementById('step-3').classList.remove('hidden'); setStep(3);
-                const m = document.getElementById('pay-method').value;
-                document.getElementById('info-bank').classList.toggle('hidden', m!=='bank');
-                document.getElementById('info-paypal').classList.toggle('hidden', m!=='paypal');
-            }
+        showPage('item-detail');
+    }
+
+    function changeMainImg(url) {
+        document.getElementById('det-img').src = url;
+    }
+
+    function openImageModal(src) {
+        const m = document.getElementById('img-modal');
+        document.getElementById('modal-img').src = src;
+        m.style.display = 'flex';
+    }
+
+    function updateCart() {
+        const list = document.getElementById('cart-list');
+        let total = 0;
+        list.innerHTML = cart.map((item, idx) => {
+            total += item.price * item.qty;
+            // 購物車縮圖也改用 imgs[0]
+            const cartImg = (item.imgs && item.imgs[0]) ? item.imgs[0] : '';
+            return `
+                <div class="flex items-center gap-4 border-b pb-4">
+                    <button onclick="removeCart(${idx})" class="text-red-400">✕</button>
+                    <img src="${cartImg}" class="w-20 h-20 object-cover">
+                    <div class="flex-1 flex justify-between">
+                        <div><h5 class="font-bold">${item.name}</h5><p class="text-sm">NT$ ${item.price} x ${item.qty}</p></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        document.getElementById('cart-total').innerText = total;
+        document.querySelectorAll('.final-amt').forEach(el=>el.innerText = total);
+    }
+
+    function addToCartDetail() {
+        const qty = parseInt(document.getElementById('det-qty').value);
+        const exist = cart.find(i=>i.id===curItem.id);
+        if(exist) exist.qty += qty; else cart.push({...curItem, qty});
+        updateCart(); alert('已加入購物車');
+    }
+
+    function quickBuy(id) {
+        const p = products.find(x=>x.id===id);
+        cart = [{...p, qty: 1}];
+        updateCart(); toStep1(); showPage('cart_view');
+    }
+
+    function buyNow() {
+        cart = [{...curItem, qty: parseInt(document.getElementById('det-qty').value)}];
+        updateCart(); toStep1(); showPage('cart_view');
+    }
+
+    function removeCart(idx) { cart.splice(idx,1); updateCart(); }
+
+    function toStep1() { hideSteps(); document.getElementById('step-1').classList.remove('hidden'); setStep(1); }
+    function toStep2() { if(cart.length===0) return alert('空購物車'); hideSteps(); document.getElementById('step-2').classList.remove('hidden'); setStep(2); }
+    
+    function validateStep2() {
+        const f = ['email','name','phone','addr'];
+        let ok = true;
+        f.forEach(id=>{
+            const el = document.getElementById('f-'+id);
+            const hint = document.getElementById('err-'+id);
+            if(!el.value.trim()){ hint.style.display='block'; ok=false; } else hint.style.display='none';
+        });
+        if(ok) {
+            hideSteps(); document.getElementById('step-3').classList.remove('hidden'); setStep(3);
+            const m = document.getElementById('pay-method').value;
+            document.getElementById('info-bank').classList.toggle('hidden', m!=='bank');
+            document.getElementById('info-paypal').classList.toggle('hidden', m!=='paypal');
         }
+    }
 
-        function finishOrder() {
-            if(isLocked) return; isLocked = true;
-            hideSteps(); document.getElementById('step-4').classList.remove('hidden'); setStep(4);
-            setTimeout(()=>location.reload(), 5000);
+    function finishOrder() {
+        if(isLocked) return; isLocked = true;
+        hideSteps(); document.getElementById('step-4').classList.remove('hidden'); setStep(4);
+        setTimeout(()=>location.reload(), 5000);
+    }
+
+    function sendCustom() {
+        if(isLocked) return;
+        const email = document.getElementById('cus-email');
+        const req = document.getElementById('cus-req');
+        let ok = true;
+        if(!email.value.trim()){ document.getElementById('err-cus-email').style.display='block'; ok=false; } else document.getElementById('err-cus-email').style.display='none';
+        if(!req.value.trim()){ document.getElementById('err-cus-req').style.display='block'; ok=false; } else document.getElementById('err-cus-req').style.display='none';
+        
+        if(ok) {
+            isLocked = true;
+            showPage('custom_finish');
+            setTimeout(()=> { showPage('home'); isLocked = false; }, 5000);
         }
+    }
 
-        function sendCustom() {
-            if(isLocked) return;
-            const email = document.getElementById('cus-email');
-            const req = document.getElementById('cus-req');
-            let ok = true;
-            if(!email.value.trim()){ document.getElementById('err-cus-email').style.display='block'; ok=false; } else document.getElementById('err-cus-email').style.display='none';
-            if(!req.value.trim()){ document.getElementById('err-cus-req').style.display='block'; ok=false; } else document.getElementById('err-cus-req').style.display='none';
-            
-            if(ok) {
-                isLocked = true;
-                showPage('custom_finish');
-                setTimeout(()=> { showPage('home'); isLocked = false; }, 5000);
-            }
-        }
+    function sendQA() { alert('問題已傳送'); document.getElementById('qa-msg').value=''; }
 
-        function sendQA() { alert('問題已傳送'); document.getElementById('qa-msg').value=''; }
+    function copyEmail(email) {
+        navigator.clipboard.writeText(email).then(()=>alert('已複製 Gmail: ' + email));
+    }
 
-        function copyEmail(email) {
-            navigator.clipboard.writeText(email).then(()=>alert('已複製 Gmail: ' + email));
-        }
+    function hideSteps() { for(let i=1;i<=4;i++) { const el = document.getElementById('step-'+i); if(el) el.classList.add('hidden'); } }
+    function setStep(n) { 
+        for(let i=1;i<=4;i++) { const el = document.getElementById('ps-'+i); if(el) el.classList.remove('active'); }
+        for(let i=1;i<=n;i++) { const el = document.getElementById('ps-'+i); if(el) el.classList.add('active'); }
+    }
 
-        function hideSteps() { for(let i=1;i<=4;i++) document.getElementById('step-'+i).classList.add('hidden'); }
-        function setStep(n) { 
-            for(let i=1;i<=4;i++) document.getElementById('ps-'+i).classList.remove('active');
-            for(let i=1;i<=n;i++) document.getElementById('ps-'+i).classList.add('active');
-        }
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        const target = document.getElementById(id);
+        if(target) target.classList.add('active');
+        window.scrollTo(0,0);
+    }
 
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            window.scrollTo(0,0);
-        }
+    // 將函數掛載到 window，讓 HTML 的 onclick 可以用到
+    window.showPage = showPage;
+    window.openDetail = openDetail;
+    window.filterCat = filterCat;
+    window.changeMainImg = changeMainImg;
+    window.addToCartDetail = addToCartDetail;
+    window.buyNow = buyNow;
+    window.quickBuy = quickBuy;
+    window.removeCart = removeCart;
+    window.copyEmail = copyEmail;
+    window.toStep1 = toStep1;
+    window.toStep2 = toStep2;
+    window.validateStep2 = validateStep2;
+    window.finishOrder = finishOrder;
+    window.sendCustom = sendCustom;
+    window.sendQA = sendQA;
+    window.openImageModal = openImageModal;
+    window.renderItems = renderItems;
 
-        renderItems();
-    </script>
+</script>
 </body>
 </html>
