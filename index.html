@@ -8,35 +8,61 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');
 
+        /* --- 🎨 顏色與間距自定義控制台 --- */
         :root {
-            --header-bg: #2c2420; --header-text: #ffffff;
-            --main-bg: #fdfaf7; --main-text: #3d2b1f;
-            --footer-bg: #1a1512; --footer-text: #d1c7bd;
-            --about-overlay: rgba(0, 0, 0, 0.4); --about-txt-color: #ffffff;
-            --sidebar-bg: #f3f0ec; --buy-btn-bg: #8b5e3c;
+            --header-bg: #2c2420;        /* 頂部背景 */
+            --header-text: #ffffff;      /* 公司名稱/選單文字顏色 */
+            --main-bg: #fdfaf7;          /* 中間主背景 (商品底色同步) */
+            --main-text: #3d2b1f;        /* 內容文字顏色 */
+            --footer-bg: #1a1512;        /* 底部背景 */
+            --footer-text: #d1c7bd;      /* 底部文字顏色 */
+
+            --about-overlay: rgba(0, 0, 0, 0.4); /* 關於我們背景遮罩色 */
+            --about-txt-color: #ffffff;          /* 關於我們文字顏色 */
+
+            --sidebar-bg: #f3f0ec;       /* 側邊分類背景 */
+            --buy-btn-bg: #8b5e3c;       /* 購買按鈕顏色 */
+            --product-gap: 32px;         /* 商品顯示間距 */
         }
 
-        body { font-family: 'Noto Serif TC', serif; background-color: var(--main-bg); color: var(--main-text); scroll-behavior: smooth; }
+        body { 
+            font-family: 'Noto Serif TC', serif; 
+            background-color: var(--main-bg); 
+            color: var(--main-text);
+            margin: 0; padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        /* --- 導航欄：滿版滑出且無縫 --- */
         header { position: sticky; top: 0; z-index: 1000; background: var(--header-bg); }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2rem; }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2rem; position: relative; }
         
-        .hamburger-trigger { cursor: pointer; position: relative; padding: 10px; }
-        .dropdown-panel { 
-            position: absolute; top: 100%; right: 0; width: 220px; 
-            background: var(--header-bg); max-height: 0; overflow: hidden; 
-            transition: 0.4s ease-in-out; z-index: 999; 
+        .hamburger-trigger { cursor: pointer; padding: 10px; }
+        .dropdown-panel {
+            position: absolute; top: 100%; left: 0; width: 100vw;
+            background: var(--header-bg);
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+            display: flex; flex-direction: column;
+            z-index: 999;
         }
         .hamburger-trigger:hover .dropdown-panel { max-height: 600px; }
         .dropdown-link { 
             color: var(--header-text); padding: 1.2rem; text-align: center; 
-            border-top: 1px solid rgba(255,255,255,0.05); display: block; 
+            width: 100%; border-top: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
         }
         .dropdown-link:hover { background: rgba(255,255,255,0.1); }
+
+        /* --- 特效：滑鼠移入放大 --- */
+        .hover-zoom { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .hover-zoom:hover { transform: scale(1.05); cursor: pointer; }
 
         .page { display: none; min-height: 80vh; }
         .page.active { display: block; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* --- 關於我們背景樣式 --- */
         .about-wrap {
             position: relative; width: 100%; height: 65vh;
             background: url('https://images.unsplash.com/photo-1523475496153-3d6cc0f0bf19?w=1600') center/cover no-repeat;
@@ -45,18 +71,23 @@
         .about-mask { position: absolute; inset: 0; background: var(--about-overlay); }
         .about-inner { position: relative; z-index: 5; text-align: center; color: var(--about-txt-color); padding: 2rem; }
 
+        /* --- 商品圖放大 Modal --- */
+        #img-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; cursor: zoom-out; }
+        #img-modal img { max-width: 90%; max-height: 90%; border: 5px solid white; }
+
+        /* --- 進度條 --- */
+        .progress-line { display: flex; justify-content: space-between; margin-bottom: 2rem; }
         .prog-step { flex: 1; text-align: center; border-bottom: 4px solid #ddd; padding-bottom: 10px; color: #aaa; font-size: 0.8rem; }
         .prog-step.active { border-color: var(--buy-btn-bg); color: var(--buy-btn-bg); font-weight: bold; }
+
         .error-msg { color: #ff4d4d; font-size: 0.75rem; display: none; margin-top: 2px; }
-        .hover-zoom { transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .hover-zoom:hover { transform: scale(1.05); }
     </style>
 </head>
 <body>
 
     <header>
         <div class="nav-container">
-            <h1 class="text-2xl font-bold tracking-widest cursor-pointer text-white" onclick="showPage('home')">DAY 's Leather</h1>
+            <h1 class="text-2xl font-bold tracking-widest cursor-pointer" style="color: var(--header-text);" onclick="showPage('home')">DAY 's Leather</h1>
             <div class="hamburger-trigger">
                 <div class="space-y-1.5">
                     <span class="block w-6 h-0.5 bg-white"></span>
@@ -64,50 +95,72 @@
                     <span class="block w-6 h-0.5 bg-white"></span>
                 </div>
                 <nav class="dropdown-panel">
-                    <div class="dropdown-link" onclick="showPage('products')">所有產品</div>
+                    <div class="dropdown-link" onclick="showPage('news')">新品介紹</div>
+                    <div class="dropdown-link" onclick="showPage('products')">產品頁面</div>
                     <div class="dropdown-link" onclick="showPage('custom')">訂製專區</div>
                     <div class="dropdown-link" onclick="showPage('about')">關於我們</div>
                     <div class="dropdown-link" onclick="showPage('contact')">聯絡我們</div>
-                    <div class="dropdown-link" onclick="showPage('qa')">常見QA</div>
+                    <div class="dropdown-link" onclick="showPage('qa')">問題QA</div>
                 </nav>
             </div>
         </div>
     </header>
 
     <div id="home" class="page active px-6 py-20 text-center">
-        <h2 class="text-4xl font-bold mb-10">職人工藝．陪伴一生</h2>
+        <h2 class="text-4xl font-bold mb-10" style="color: var(--main-text);">職人工藝．陪伴一生</h2>
         <img src="https://images.unsplash.com/photo-1473188588955-71910bb7c333?w=1200" class="hover-zoom rounded shadow-2xl mb-12 w-full max-w-4xl mx-auto">
-        <p class="text-lg opacity-80 leading-relaxed max-w-2xl mx-auto mb-8">皮革的生命，從被您使用的那一刻開始。</p>
-        <button onclick="showPage('products')" class="px-12 py-4 bg-stone-800 text-white font-bold rounded hover-zoom">探索作品集</button>
+        <p class="text-lg opacity-80 leading-relaxed max-w-2xl mx-auto">皮革的生命，從被您使用的那一刻開始。</p>
     </div>
 
-    <div id="products" class="page py-10">
-        <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1600" class="w-full h-[40vh] object-cover mb-10">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row gap-8">
+    <div id="news" class="page px-6 py-16">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold mb-16 border-l-8 border-stone-800 pl-4 italic">Spring 2026 Collection</h2>
+            <div class="grid md:grid-cols-2 gap-12 items-center bg-white p-8 rounded shadow-sm relative">
+                <div class="hover-zoom"><img src="https://images.unsplash.com/photo-1627123424574-724758594e93?w=800" class="rounded"></div>
+                <div class="space-y-6">
+                    <h3 class="text-2xl font-bold">馬皮零錢包</h3>
+                    <p class="opacity-70 leading-loose">馬皮<br>因其耐磨的特性，常用來製作服飾等長摩擦的物品，零錢包將會是長期且經常使用的物品，利用馬皮的特性可擁有較長的使用壽命。</p>
+                    <button onclick="quickBuy(1)" class="absolute bottom-6 right-6 px-6 py-2 text-white font-bold hover-zoom" style="background-color: var(--buy-btn-bg);">立即購買</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="products" class="page">
+        <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1600" class="w-full h-[55vh] object-cover">
+        <div class="max-w-7xl mx-auto py-10 px-6 flex flex-col md:flex-row gap-8">
             <aside class="w-full md:w-64 p-6 rounded h-fit" style="background-color: var(--sidebar-bg);">
                 <h3 class="font-bold mb-6 border-b border-stone-400 pb-2">商品分類</h3>
                 <ul class="space-y-4 text-sm font-medium">
-                    <li class="hover:underline cursor-pointer" onclick="renderItems()">所有商品</li>
+                    <li class="hover:underline cursor-pointer" onclick="filterCat('all')">所有商品</li>
+                    <li class="hover:underline cursor-pointer" onclick="filterCat('horseleather')">馬皮系列</li>
+                    <li class="hover:underline cursor-pointer" onclick="filterCat('victor')">維克托系列</li>
                 </ul>
             </aside>
             <div class="flex-1">
                 <div class="flex justify-between items-center mb-8">
                     <select id="sortBox" onchange="renderItems()" class="border p-2 text-xs bg-white">
-                        <option value="latest">最新上市</option>
+                        <option value="classic">經典不敗 (最早)</option>
+                        <option value="latest">最新上市 (近期)</option>
                         <option value="high">價格最高</option>
                         <option value="low">價格最低</option>
                     </select>
                     <button onclick="showPage('cart_view')" class="text-xl hover-zoom">🛒 購物車</button>
                 </div>
-                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-3" style="gap: var(--product-gap);"></div>
             </div>
         </div>
     </div>
 
     <div id="item-detail" class="page py-20 px-6">
         <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-12">
-            <div class="flex-1"><img id="det-img" src="" class="w-full rounded shadow-xl"></div>
-            <div class="flex-1 space-y-6">
+           <div class="flex-1 p-4" style="background-color: var(--main-bg);">
+  	      <img id="det-img" src="" class="w-full hover-zoom shadow-xl cursor-zoom-in mb-4" onclick="openImageModal(this.src)">
+    
+   	      <div id="thumb-bar" class="flex gap-2"></div>
+	</div>
+            <div class="flex-1 space-y-6 relative">
+                <div class="absolute top-0 right-0 text-2xl cursor-pointer" onclick="showPage('cart_view')">🛒</div>
                 <h2 id="det-name" class="text-3xl font-bold"></h2>
                 <p id="det-price" class="text-2xl font-bold text-amber-900"></p>
                 <div class="flex items-center gap-4">
@@ -115,8 +168,8 @@
                     <input type="number" id="det-qty" value="1" min="1" class="border p-2 w-20 text-center">
                 </div>
                 <div class="flex gap-4">
-                    <button onclick="addToCartDetail()" class="flex-1 py-4 text-white font-bold bg-stone-500">加入購物車</button>
-                    <button onclick="buyNow()" class="flex-1 py-4 text-white font-bold" style="background-color: var(--buy-btn-bg);">直接購買</button>
+                    <button onclick="addToCartDetail()" class="flex-1 py-4 text-white font-bold hover-zoom bg-stone-500">加入購物車</button>
+                    <button onclick="buyNow()" class="flex-1 py-4 text-white font-bold hover-zoom" style="background-color: var(--buy-btn-bg);">直接購買</button>
                 </div>
                 <div id="det-desc" class="border-t pt-6 text-sm opacity-70 leading-loose"></div>
             </div>
@@ -125,26 +178,54 @@
 
     <div id="cart_view" class="page py-20 px-6">
         <div class="max-w-3xl mx-auto bg-white p-8 rounded shadow-sm">
-            <div class="flex justify-between mb-8">
-                <div id="ps-1" class="prog-step active">確認清單</div>
-                <div id="ps-2" class="prog-step">填寫資料</div>
-                <div id="ps-3" class="prog-step">完成結帳</div>
+            <div class="progress-line">
+                <div id="ps-1" class="prog-step active">確認訂單</div>
+                <div id="ps-2" class="prog-step">付款及地址</div>
+                <div id="ps-3" class="prog-step">結帳</div>
+                <div id="ps-4" class="prog-step">完成</div>
             </div>
+
             <div id="step-1">
                 <div id="cart-list" class="space-y-6 mb-8"></div>
                 <div class="text-right border-t pt-4">
                     <p class="text-xl font-bold">總計: NT$ <span id="cart-total">0</span></p>
-                    <button onclick="toStep2()" class="mt-6 px-10 py-3 text-white font-bold" style="background-color: var(--buy-btn-bg);">下一步</button>
+                    <button onclick="toStep2()" class="mt-6 px-10 py-3 text-white font-bold" style="background-color: var(--buy-btn-bg);">確認清單</button>
                 </div>
             </div>
+
             <div id="step-2" class="hidden space-y-4">
-               
-                <textarea id="f-addr" placeholder="地址" class="w-full border p-3"></textarea>
-                <button onclick="finishOrder()" class="w-full py-4 text-white font-bold" style="background-color: var(--buy-btn-bg);">確認送出訂單</button>
+                <h3 class="font-bold border-b pb-2">配送與支付資訊</h3>
+                <select id="pay-method" class="w-full border p-3">
+                    <option value="bank">銀行匯款</option>
+                    <option value="paypal">PayPal</option>
+                </select>
+                <input type="email" id="f-email" placeholder="Gmail (必填)" class="w-full border p-2">
+                <p id="err-email" class="error-msg">尚未填寫完成</p>
+                <input type="text" id="f-name" placeholder="收件姓名 (必填)" class="w-full border p-2">
+                <p id="err-name" class="error-msg">尚未填寫完成</p>
+                <input type="tel" id="f-phone" placeholder="電話 (必填)" class="w-full border p-2">
+                <p id="err-phone" class="error-msg">尚未填寫完成</p>
+                <textarea id="f-addr" placeholder="收件地址 (必填)" class="w-full border p-2"></textarea>
+                <p id="err-addr" class="error-msg">尚未填寫完成</p>
+                <button onclick="validateStep2()" class="w-full py-4 text-white font-bold" style="background-color: var(--buy-btn-bg);">前往下一步</button>
             </div>
-            <div id="step-3" class="hidden text-center py-10">
+
+            <div id="step-3" class="hidden text-center space-y-6">
+                <div id="info-bank" class="hidden bg-stone-100 p-6 rounded text-left">
+                    <p class="font-bold">匯款銀行：(822) 中國信託</p>
+                    <p>帳號：1234-5678-9012-3456</p>
+                    <p class="mt-4 text-xl font-bold">付款總額：NT$ <span class="final-amt"></span></p>
+                </div>
+                <div id="info-paypal" class="hidden">
+                    <p class="mb-4">結帳金額：NT$ <span class="final-amt"></span></p>
+                    <a href="https://www.paypal.com" target="_blank" class="block w-full py-4 bg-blue-600 text-white font-bold rounded">前往 PayPal 連結付款</a>
+                </div>
+                <button onclick="finishOrder()" class="w-full py-4 text-white font-bold" style="background-color: var(--buy-btn-bg);">結帳完成</button>
+            </div>
+
+            <div id="step-4" class="hidden text-center py-10">
                 <h2 class="text-3xl font-bold mb-4">交易完成！</h2>
-                <p class="opacity-50">感謝您的選購，即將回到主頁...</p>
+                <p class="opacity-50">感謝您的選購，5 秒後回到主頁...</p>
             </div>
         </div>
     </div>
@@ -153,10 +234,10 @@
         <section class="about-wrap">
             <div class="about-mask"></div>
             <div class="about-inner">
-                <h2 class="text-4xl font-bold mb-6">關於 DAY 's Leather</h2>
+                <h2 class="text-4xl font-bold mb-6">DAY 's Leather</h2>
                 <p class="text-lg leading-loose max-w-2xl mx-auto">
-                    我們在傳統工藝與現代美學之間尋找平衡。<br>
-                    每一塊皮革都是大地的恩賜，經由雙手溫度，成為陪伴您一生的物件。
+                    為了製作有特色的作品而存在的品牌<br>
+                    每一天出門為了讓自己更有自信，一件能襯托出自己的物品是必須的，而這正是我們存在的意義。
                 </p>
             </div>
         </section>
@@ -164,251 +245,255 @@
 
     <div id="custom" class="page py-20 px-6">
         <div class="max-w-2xl mx-auto bg-white p-10 rounded shadow-sm">
-            <h2 class="text-2xl font-bold mb-8 text-center">皮革訂製諮詢</h2>
+            <h2 class="text-2xl font-bold mb-8 text-center">皮革商品訂製諮詢</h2>
             <div class="space-y-4">
-                <input type="email" id="cus-email" placeholder="您的 Gmail" class="w-full border p-3">
-                <textarea id="cus-req" rows="5" placeholder="描述您的訂製需求..." class="w-full border p-3"></textarea>
-                <button onclick="sendCustom()" class="w-full py-4 text-white font-bold" style="background-color: var(--buy-btn-bg);">傳送需求</button>
+                <input type="email" id="cus-email" placeholder="您的 Gmail (必填)" class="w-full border p-3">
+                <p id="err-cus-email" class="error-msg">尚未填寫</p>
+                <textarea id="cus-req" rows="5" placeholder="訂製需求詳情 (必填)" class="w-full border p-3"></textarea>
+                <p id="err-cus-req" class="error-msg">尚未填寫</p>
+                <button onclick="sendCustom()" class="w-full py-4 text-white font-bold hover-zoom" style="background-color: var(--buy-btn-bg);">傳送訂製需求</button>
             </div>
         </div>
     </div>
 
+    <div id="custom_finish" class="page py-32 text-center">
+        <h2 class="text-3xl font-bold mb-4">我們已收到您的訂製詢問！</h2>
+        <p class="opacity-50">將由專人親自回覆您。5 秒後回到主頁...</p>
+    </div>
+
     <div id="contact" class="page py-32 text-center">
         <h2 class="text-3xl font-bold mb-10">CONTACT US</h2>
-        <div class="flex flex-col gap-6 text-xl">
-    <div class="flex flex-col gap-6 text-xl">
-         <a href="#" class="hover-zoom">Instagram</a>
-            <a href="#" class="hover-zoom">Facebook</a>
-            <div class="cursor-pointer font-bold text-amber-900" onclick="copyEmail('daysleather@gmail.com')">Gmail: daysleather@gmail.com </div>
+        <div class="flex flex-col gap-6 text-xl"><a href="https://www.instagram.com/daysleather/" target="_blank" class="hover-zoom">Instagram</a>
+	<a href="https://www.facebook.com/你的專頁名稱" target="_blank" class="hover-zoom">Facebook</a>
+    	<a href="https://www.threads.net/@你的帳號" target="_blank" class="hover-zoom">Threads</a>
+            <div class="cursor-pointer font-bold text-amber-900" onclick="copyEmail('daysleather@gmail.com')">Gmail: daysleather@gmail.com (點擊複製)</div>
         </div>
     </div>
 
     <div id="qa" class="page py-20 px-6">
         <div class="max-w-3xl mx-auto">
-            <h2 class="text-2xl font-bold mb-10">常見問題</h2>
-            <details class="bg-white p-4 rounded mb-4 shadow-sm cursor-pointer"><summary class="font-bold">如何保養？</summary><p class="mt-2 text-sm opacity-60">定期擦拭保養油即可。</p></details>
-            <div class="mt-20">
-                <textarea id="qa-msg" class="w-full border p-4" placeholder="有其他問題嗎？請留言..."></textarea>
+            <h2 class="text-2xl font-bold mb-10">常見問題解答</h2>
+            <div class="space-y-4">
+                <details class="bg-white p-4 rounded cursor-pointer shadow-sm">s
+                    <summary class="font-bold">Q: 如何保養植鞣皮革？</summary>
+                    <p class="mt-4 text-sm opacity-60">保持通風、定期使用專業皮革保養乳擦拭即可。</p>
+                </details>
+            </div>
+            <div class="mt-20 border-t pt-10">
+                <h4 class="font-bold mb-4">傳送您的問題至後台</h4>
+                <textarea id="qa-msg" class="w-full border p-4" placeholder="在這裡留言..."></textarea>
                 <button onclick="sendQA()" class="mt-4 px-8 py-2 bg-stone-800 text-white rounded">傳送</button>
             </div>
         </div>
     </div>
 
-    <footer style="background-color: var(--footer-bg); color: var(--footer-text);" class="py-10 text-center">
+    <footer style="background-color: var(--footer-bg); color: var(--footer-text);" class="py-20 px-6 text-center">
+        <div class="flex justify-center gap-10 mb-8 text-sm"><a href="https://www.instagram.com/daysleather/" target="_blank" class="hover-zoom">IG</a>
+    
+    <a href="https://www.facebook.com/你的粉專名稱" target="_blank" class="hover-zoom">FB</a>
+    
+    <a href="https://www.threads.net/@你的帳號" target="_blank" class="hover-zoom">THREADS</a>
+    
+    <span class="cursor-pointer hover-zoom" onclick="copyEmail('daysleather@gmail.com')">GMAIL</span>
+        </div>
         <p class="text-[10px] opacity-30">&copy; 2026 DAY 's Leather. ALL RIGHTS RESERVED.</p>
     </footer>
 
+    <div id="img-modal" onclick="this.style.display='none'"><img id="modal-img"></div>
+
 <script type="module">
-    // 1. 導入基礎 App
+    // 引入 Firebase 核心與 Firestore 資料庫功能
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    
-    // 2. 導入 Firestore (資料庫)
-    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    
-    // 🚀 關鍵：導入 Storage 並包含 ref 功能，否則呼叫 ref() 時會噴 E04 的錯誤
-    import { getStorage, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // 這裡貼上你從 Firebase Console 取得的 Config (金鑰)
     const firebaseConfig = {
-        // ... 你的 Config ...
-    };
-
-    // 3. 點名所有的服務
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// 🚀 檢查這行！有沒有寫到 ref？
-import { getStorage, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-    // ... 後面接你的業務邏輯 ...
-    </script>
-        // 🔥 請填入你的 Firebase Config
-        const firebaseConfig = {
   apiKey: "AIzaSyAxxZyzRf_Tesn8ORTrhH1hQYDLcCspbkQ",
   authDomain: "daysleather-bdf5f.firebaseapp.com",
   projectId: "daysleather-bdf5f",
   storageBucket: "daysleather-bdf5f.firebasestorage.app",
   messagingSenderId: "386894795053",
   appId: "1:386894795053:web:1532696f841ac4842383a4",
-  measurementId: "G-9FRJ79CHM5"
-        };
+  measurementId: "G-9FRJ79CHM5
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    // 初始化 Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+        let products = []; // 先設為空的，等聯網抓資料
+
+// 🚀 關鍵：從 Firestore 讀取名為 "products" 的集合
+onSnapshot(collection(db, "products"), (snapshot) => {
+    products = snapshot.docs.map(doc => ({
+        id: doc.id,         // 文件 ID
+        ...doc.data()      // 裡面的 name, price, imgs (陣列), desc
+    }));
+    
+    // 抓到資料後，立刻畫出網頁內容
+    renderItems(products); 
+});
 
         let cart = [];
         let curItem = null;
-        let allProducts = [];
-// 在 index.html 的渲染邏輯中
-onSnapshot(collection(db, "products"), (snap) => {
-    const list = document.getElementById('product-list');
-    list.innerHTML = snap.docs.map(d => {
-        const p = d.data();
-        const coverImg = (p.imgs && p.imgs.length > 0) ? p.imgs[0] : 'https://via.placeholder.com/300?text=No+Image';
+        let isLocked = false; 
 
-        return `
-            <div class="bg-white rounded-lg shadow-md overflow-hidden group">
-                <div class="relative h-64 overflow-hidden">
-                    <img src="${coverImg}" 
-                         onclick="openModal(${JSON.stringify(p.imgs || []).replace(/"/g, '&quot;')})" 
-                         class="w-full h-full object-cover transition duration-500 group-hover:scale-110 cursor-pointer" 
-                         alt="${p.name}">
-                    
-                    ${p.imgs && p.imgs.length > 1 ? 
-                        `<span class="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                            +${p.imgs.length - 1} 張
-                         </span>` : '' 
-                    }
+        function renderItems(data = products) {
+            const grid = document.getElementById('product-grid');
+            const sort = document.getElementById('sortBox').value;
+            let sorted = [...data];
+            if(sort==='high') sorted.sort((a,b)=>b.price-a.price);
+            else if(sort==='low') sorted.sort((a,b)=>a.price-b.price);
+            else if(sort==='classic') sorted.sort((a,b)=>new Date(a.date)-new Date(b.date));
+            else if(sort==='latest') sorted.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+            grid.innerHTML = sorted.map(p => `
+                <div class="hover-zoom bg-white p-4 rounded shadow-sm text-center" onclick="openDetail(${p.id})">
+                    <img src="${p.img}" class="h-60 w-full object-cover mb-4" style="background-color: var(--main-bg);">
+                    <h4 class="font-bold">${p.name}</h4>
+                    <p class="opacity-50">NT$ ${p.price}</p>
                 </div>
+            `).join('');
+        }
 
-                <div class="p-4">
-                    <h3 class="text-lg font-bold text-stone-800">${p.name}</h3>
-                    <p class="text-gray-600 text-sm mb-2 line-clamp-2">${p.desc || ''}</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-amber-800 font-bold font-mono">NT$ ${p.price}</span>
-                        <button onclick="addToCart('${d.id}', '${p.name}', ${p.price}, '${coverImg}')" 
-                                class="bg-stone-800 text-white px-3 py-1 rounded text-sm hover:bg-amber-800 transition">
-                            加入購物車
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-});
+        function filterCat(cat) {
+            if(cat==='all') renderItems(products);
+            else renderItems(products.filter(p=>p.category===cat));
+        }
 
-        window.showPage = (id) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            window.scrollTo(0,0);
-        };
+  // B 部分：修改後的開啟詳情頁函數
+function openDetail(id) {
+    curItem = products.find(p => p.id === id);
+    
+    // 1. 設定初始主圖為第一張
+    const mainImg = document.getElementById('det-img');
+    mainImg.src = curItem.imgs[0];
 
-       window.renderItems = () => {
-    const grid = document.getElementById('product-grid');
-    // ... 排序邏輯 ...
+    // 2. 在 thumb-bar 裡面生成三張縮圖的 HTML
+    const thumbBar = document.getElementById('thumb-bar');
+    thumbBar.innerHTML = curItem.imgs.map(url => `
+        <div class="w-1/3 cursor-pointer border-2 border-transparent hover:border-stone-800 transition-all overflow-hidden rounded">
+            <img src="${url}" class="w-full h-20 object-cover" onclick="changeMainImg('${url}')">
+        </div>
+    `).join('');
 
-    grid.innerHTML = data.map(p => {
-        // 🚀 不要在這裡用 ref()！直接用存好的 URL
-        const coverImg = (p.imgs && p.imgs.length > 0) ? p.imgs[0] : (p.img || 'https://via.placeholder.com/300');
-        
-        return `
-            <div class="product-card">
-                <img src="${coverImg}" onclick="openModal(${JSON.stringify(p.imgs || []).replace(/"/g, '&quot;')})">
-                </div>
-        `;
-    }).join('');
-};
+    // 3. 填入名稱、價格、描述
+    document.getElementById('det-name').innerText = curItem.name;
+    document.getElementById('det-price').innerText = `NT$ ${curItem.price}`;
+    document.getElementById('det-desc').innerText = curItem.desc;
+    
+    showPage('item-detail');
+}
 
-        window.openDetail = (id) => {
-            curItem = allProducts.find(p => p.id === id);
-            document.getElementById('det-img').src = curItem.img;
-            document.getElementById('det-name').innerText = curItem.name;
-            document.getElementById('det-price').innerText = `NT$ ${curItem.price}`;
-            document.getElementById('det-desc').innerText = curItem.desc || "";
-            showPage('item-detail');
-        };
+// B 部分：新增這個函數，處理點擊縮圖切換主圖
+function changeMainImg(url) {
+    document.getElementById('det-img').src = url;
+}
 
-        window.addToCartDetail = () => {
-            const qty = parseInt(document.getElementById('det-qty').value);
-            const exist = cart.find(i => i.id === curItem.id);
-            if(exist) exist.qty += qty; else cart.push({...curItem, qty});
-            alert('已加入購物車');
-            updateCart();
-        };
-
-        window.buyNow = () => {
-            cart = [{...curItem, qty: parseInt(document.getElementById('det-qty').value)}];
-            updateCart();
-            showPage('cart_view');
-        };
+        function openImageModal(src) {
+            const m = document.getElementById('img-modal');
+            document.getElementById('modal-img').src = src;
+            m.style.display = 'flex';
+        }
 
         function updateCart() {
             const list = document.getElementById('cart-list');
             let total = 0;
             list.innerHTML = cart.map((item, idx) => {
                 total += item.price * item.qty;
-                return `<div class="flex justify-between border-b pb-2"><span>${item.name} x ${item.qty}</span><span>NT$ ${item.price*item.qty}</span></div>`;
+                return `
+                    <div class="flex items-center gap-4 border-b pb-4">
+                        <button onclick="removeCart(${idx})" class="text-red-400">✕</button>
+                        <img src="${item.img}" class="w-20 h-20 object-cover">
+                        <div class="flex-1 flex justify-between">
+                            <div><h5 class="font-bold">${item.name}</h5><p class="text-sm">NT$ ${item.price} x ${item.qty}</p></div>
+                        </div>
+                    </div>
+                `;
             }).join('');
             document.getElementById('cart-total').innerText = total;
+            document.querySelectorAll('.final-amt').forEach(el=>el.innerText = total);
         }
 
-        window.toStep2 = () => { 
-            if(cart.length===0) return alert('空購物車'); 
-            document.getElementById('step-1').classList.add('hidden'); 
-            document.getElementById('step-2').classList.remove('hidden'); 
-            document.getElementById('ps-2').classList.add('active');
-        };
+        function addToCartDetail() {
+            const qty = parseInt(document.getElementById('det-qty').value);
+            const exist = cart.find(i=>i.id===curItem.id);
+            if(exist) exist.qty += qty; else cart.push({...curItem, qty});
+            updateCart(); alert('已加入購物車');
+        }
 
-        window.finishOrder = async () => {
-            const order = {
-                name: document.getElementById('f-name').value,
-                email: document.getElementById('f-email').value,
-                items: cart,
-                total: document.getElementById('cart-total').innerText,
-                timestamp: new Date()
-            };
-            await addDoc(collection(db, "orders"), order);
-            document.getElementById('step-2').classList.add('hidden');
-            document.getElementById('step-3').classList.remove('hidden');
-            document.getElementById('ps-3').classList.add('active');
-            cart = [];
+        function quickBuy(id) {
+            const p = products.find(x=>x.id===id);
+            cart = [{...p, qty: 1}];
+            updateCart(); toStep1(); showPage('cart_view');
+        }
+
+        function buyNow() {
+            cart = [{...curItem, qty: parseInt(document.getElementById('det-qty').value)}];
+            updateCart(); toStep1(); showPage('cart_view');
+        }
+
+        function removeCart(idx) { cart.splice(idx,1); updateCart(); }
+
+        // --- 結帳流程 ---
+        function toStep1() { hideSteps(); document.getElementById('step-1').classList.remove('hidden'); setStep(1); }
+        function toStep2() { if(cart.length===0) return alert('空購物車'); hideSteps(); document.getElementById('step-2').classList.remove('hidden'); setStep(2); }
+        
+        function validateStep2() {
+            const f = ['email','name','phone','addr'];
+            let ok = true;
+            f.forEach(id=>{
+                const el = document.getElementById('f-'+id);
+                const hint = document.getElementById('err-'+id);
+                if(!el.value.trim()){ hint.style.display='block'; ok=false; } else hint.style.display='none';
+            });
+            if(ok) {
+                hideSteps(); document.getElementById('step-3').classList.remove('hidden'); setStep(3);
+                const m = document.getElementById('pay-method').value;
+                document.getElementById('info-bank').classList.toggle('hidden', m!=='bank');
+                document.getElementById('info-paypal').classList.toggle('hidden', m!=='paypal');
+            }
+        }
+
+        function finishOrder() {
+            if(isLocked) return; isLocked = true;
+            hideSteps(); document.getElementById('step-4').classList.remove('hidden'); setStep(4);
             setTimeout(()=>location.reload(), 5000);
-        };
+        }
 
-        window.sendCustom = async () => {
-            const email = document.getElementById('cus-email').value;
-            const content = document.getElementById('cus-req').value;
-            await addDoc(collection(db, "inbox"), { type: "訂製", email, content, timestamp: new Date() });
-            alert('我們已收到您的需求！');
-            showPage('home');
-        };
+        function sendCustom() {
+            if(isLocked) return;
+            const email = document.getElementById('cus-email');
+            const req = document.getElementById('cus-req');
+            let ok = true;
+            if(!email.value.trim()){ document.getElementById('err-cus-email').style.display='block'; ok=false; } else document.getElementById('err-cus-email').style.display='none';
+            if(!req.value.trim()){ document.getElementById('err-cus-req').style.display='block'; ok=false; } else document.getElementById('err-cus-req').style.display='none';
+            
+            if(ok) {
+                isLocked = true;
+                showPage('custom_finish');
+                setTimeout(()=> { showPage('home'); isLocked = false; }, 5000);
+            }
+        }
 
-        window.sendQA = async () => {
-            const content = document.getElementById('qa-msg').value;
-            await addDoc(collection(db, "inbox"), { type: "QA問答", content, timestamp: new Date() });
-            alert('訊息已傳送');
-            document.getElementById('qa-msg').value = '';
-        };
+        function sendQA() { alert('問題已傳送'); document.getElementById('qa-msg').value=''; }
 
-        window.copyEmail = (email) => {
-            navigator.clipboard.writeText(email).then(()=>alert('已複製 Email'));
-        };
-// 開啟相簿彈窗
-window.openModal = (imgList) => {
-    const modal = document.getElementById('image-preview'); // 注意這裡要對應上面的 ID
-    const modalImg = document.getElementById('modal-img');
-    const thumbContainer = document.getElementById('modal-thumbnails');
-    
-    if (!imgList || imgList.length === 0) return;
+        function copyEmail(email) {
+            navigator.clipboard.writeText(email).then(()=>alert('已複製 Gmail: ' + email));
+        }
 
-    // 顯示彈窗
-    document.getElementById('image-modal').classList.remove('hidden');
-    
-    // 設定第一張為主圖
-    modalImg.src = imgList[0];
+        function hideSteps() { for(let i=1;i<=4;i++) document.getElementById('step-'+i).classList.add('hidden'); }
+        function setStep(n) { 
+            for(let i=1;i<=4;i++) document.getElementById('ps-'+i).classList.remove('active');
+            for(let i=1;i<=n;i++) document.getElementById('ps-'+i).classList.add('active');
+        }
 
-    // 生成下方的縮圖
-    thumbContainer.innerHTML = imgList.map((url, index) => `
-        <img src="${url}" 
-             onclick="document.getElementById('modal-img').src='${url}'" 
-             class="w-16 h-16 object-cover rounded cursor-pointer border-2 border-transparent hover:border-white transition">
-    `).join('');
-};
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
+        }
 
-// 關閉相簿彈窗
-window.closeModal = () => {
-    document.getElementById('image-modal').classList.add('hidden');
-};
-
-// 按下鍵盤 Esc 鍵也能關閉
-window.addEventListener('keydown', (e) => {
-    if (e.key === "Escape") closeModal();
-});
+        renderItems();
     </script>
-<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex flex-col items-center justify-center p-4">
-    <button onclick="closeModal()" class="absolute top-5 right-5 text-white text-4xl">&times;</button>
-    
-    <img id="modal-img" src="" class="max-w-full max-h-[80vh] object-contain shadow-2xl">
-    
-    <div id="modal-thumbnails" class="flex gap-2 mt-6 overflow-x-auto pb-2 w-full justify-center"></div>
-</div>
 </body>
 </html>
