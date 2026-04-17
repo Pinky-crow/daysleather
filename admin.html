@@ -83,14 +83,22 @@
         });
 
         // --- 功能 C: 自動讀取訊息 ---
-        onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
-            const el = document.getElementById('msg-list');
-            el.innerHTML = snap.docs.map(doc => `
-                <div class="p-3 bg-slate-50 rounded border border-slate-100 shadow-sm">
-                    <div class="text-slate-700">${doc.data().content || '無內容'}</div>
+       // --- 這是你要的「二」：後台顯示 Gmail 的功能 ---
+onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
+    const list = document.getElementById('msg-list');
+    if (list) {
+        list.innerHTML = snap.docs.map(doc => {
+            const d = doc.data();
+            // 這裡就是關鍵：把 d.email 抓出來秀在畫面上
+            return `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 shadow-sm mb-3">
+                    <div class="text-blue-600 font-bold text-xs mb-1">📩 聯絡信箱：${d.email || '未填寫'}</div>
+                    <div class="text-slate-800 py-2 border-t border-slate-100 mt-1">${d.content || '無內容'}</div>
                 </div>
-            `).join('') || '目前沒有新訊息';
-        });
+            `;
+        }).join('') || '目前沒有新訊息';
+    }
+});
     </script>
 </body>
 </html>
