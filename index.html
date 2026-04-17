@@ -248,9 +248,9 @@
         <div class="max-w-2xl mx-auto bg-white p-10 rounded shadow-sm">
             <h2 class="text-2xl font-bold mb-8 text-center">皮革商品訂製諮詢</h2>
             <div class="space-y-4">
-                <input type="email" id="cus-email" placeholder="您的 Gmail (必填)" class="w-full border p-3">
+                <input type="email" id="custom-email" placeholder="您的 Gmail (必填)" class="w-full border p-3">
                 <p id="err-cus-email" class="error-msg">尚未填寫</p>
-                <textarea id="cus-req" rows="5" placeholder="訂製需求詳情 (必填)" class="w-full border p-3"></textarea>
+                <textarea id="custom-msg" rows="5" placeholder="訂製需求詳情 (必填)" class="w-full border p-3"></textarea>
                 <p id="err-cus-req" class="error-msg">尚未填寫</p>
                 <button onclick="sendCustom()" class="w-full py-4 text-white font-bold hover-zoom" style="background-color: var(--buy-btn-bg);">傳送訂製需求</button>
             </div>
@@ -272,8 +272,7 @@
     </div>
 
     <div id="qa" class="page py-20 px-6">
-        <div class="max-w-3xl mx-auto">
-            <h2 class="text-2xl font-bold mb-10">常見問題解答</h2>
+        <div class="max-w-3xl mx-auto">            <h2 class="text-2xl font-bold mb-10">常見問題解答</h2>
             <div class="space-y-4">
                 <details class="bg-white p-4 rounded cursor-pointer shadow-sm">s
                     <summary class="font-bold">Q: 如何保養植鞣皮革？</summary>
@@ -496,26 +495,44 @@
         window.scrollTo(0,0);
     }
 // 在 index.html 的 <script type="module"> 裡面
+// --- 1. 一般 QA 詢問 ---
 window.sendQA = async () => {
-    // 1. 抓取 HTML 裡本來就有的 Gmail 輸入框的值 (請確認 id 是否叫 qa-email)
-    const email = document.getElementById('qa-email').value; 
-    const content = document.getElementById('qa-msg').value;
+    const email = document.getElementById('qa-email').value; // 抓你的 Gmail 欄位
+    const msg = document.getElementById('qa-msg').value;     // 抓問題欄位
 
-    if (!content) return alert('內容不能空白喔！');
+    if (!msg) return alert('請輸入內容');
 
     try {
         const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        
-        // 2. 這裡一定要把 email 放進去傳送
         await addDoc(collection(db, "messages"), {
-            email: email || "未填寫", // 傳送 Gmail
-            content: content,        // 傳送問題
+            email: email || "未填寫",
+            content: msg,
+            type: "qa", // 標記為一般問題
             createdAt: serverTimestamp()
         });
-        
-        alert('已傳送！');
+        alert('QA 訊息已傳送！');
         document.getElementById('qa-msg').value = '';
-    } catch (e) { console.error("傳送失敗", e); }
+    } catch (e) { alert('傳送失敗'); }
+};
+
+// --- 2. 訂製需求詢問 ---
+window.sendCustom = async () => {
+    const email = document.getElementById('custom-email').value; // 抓訂製區的 Gmail
+    const msg = document.getElementById('custom-msg').value;     // 抓訂製需求
+
+    if (!msg) return alert('請輸入訂製需求');
+
+    try {
+        const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        await addDoc(collection(db, "messages"), {
+            email: email || "未填寫",
+            content: msg,
+            type: "custom", // 標記為訂製詢問
+            createdAt: serverTimestamp()
+        });
+        alert('訂製需求已傳送！');
+        document.getElementById('custom-msg').value = '';
+    } catch (e) { alert('傳送失敗'); }
 };
 
     // 原本就有的掛載語句
