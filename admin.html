@@ -2,61 +2,45 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>DAY 's Leather | 管理後台</title>
+    <title>DAY 's Leather | 內部管理系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');</style>
 </head>
-<body class="bg-slate-50 p-6 md:p-12">
+<body class="bg-slate-50 font-['Noto_Serif_TC'] p-6 md:p-12">
     <div class="max-w-4xl mx-auto">
         <header class="flex justify-between items-center mb-10 border-b pb-6">
-            <h1 class="text-3xl font-bold text-slate-800">📦 商品上架系統</h1>
-            <a href="index.html" target="_blank" class="text-blue-600 hover:underline">查看官網 ↗</a>
+            <h1 class="text-3xl font-bold text-slate-800">🛠️ 品牌管理後台</h1>
+            <a href="index.html" target="_blank" class="text-blue-600 hover:underline text-sm">回官網 ↗</a>
         </header>
 
-        <div class="grid gap-8">
-            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">商品名稱</label>
-                        <input type="text" id="name" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">價格 (NT$)</label>
-                        <input type="number" id="price" class="w-full border p-3 rounded-lg">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium mb-2">圖片網址</label>
-                        <input type="text" id="img" placeholder="https://..." class="w-full border p-3 rounded-lg">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium mb-2">商品描述</label>
-                        <textarea id="desc" rows="4" class="w-full border p-3 rounded-lg"></textarea>
-                    </div>
-                    <button onclick="upload()" class="md:col-span-2 bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">
-                        正式發佈到官網
-                    </button>
-                </div>
-            </section>
+        <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-10">
+            <h2 class="text-xl font-bold mb-6 text-slate-700">📦 上架新商品</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input type="text" id="name" placeholder="商品名稱" class="border p-3 rounded-lg w-full">
+                <input type="number" id="price" placeholder="價格 (NT$)" class="border p-3 rounded-lg w-full">
+                <input type="text" id="img" placeholder="圖片連結" class="border p-3 rounded-lg w-full md:col-span-2">
+                <textarea id="desc" placeholder="商品描述" class="border p-3 rounded-lg w-full md:col-span-2" rows="3"></textarea>
+                <button onclick="upload()" class="md:col-span-2 bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                    發佈到官網
+                </button>
+            </div>
+        </section>
 
-            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="font-bold mb-4">🔔 最近動態</h3>
-                <div id="status" class="text-sm text-slate-500">正在連線至資料庫...</div>
-            </section>
-            <div class="grid md:grid-cols-2 gap-6 mt-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="font-bold mb-4 text-amber-900 border-b pb-2">📋 最近訂單</h3>
-                    <div id="order-list" class="space-y-3 text-sm text-slate-500 italic">正在載入數據...</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="font-bold mb-4 text-green-900 border-b pb-2">💬 客戶訊息</h3>
-                    <div id="msg-list" class="space-y-3 text-sm text-slate-500 italic">正在載入數據...</div>
-                </div>
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold mb-4 text-amber-900 border-b pb-2">📋 最近訂單</h3>
+                <div id="order-list" class="space-y-3 text-sm">等待新訂單...</div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold mb-4 text-green-900 border-b pb-2">💬 客戶訊息</h3>
+                <div id="msg-list" class="space-y-3 text-sm">等待新訊息...</div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
@@ -69,52 +53,43 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        document.getElementById('status').innerText = "✅ 已連線至 Firebase，隨時可以上架。";
 
+        // --- 功能 A: 上架商品 ---
         window.upload = async () => {
             const name = document.getElementById('name').value;
             const price = Number(document.getElementById('price').value);
             const img = document.getElementById('img').value;
             const desc = document.getElementById('desc').value;
-
-            if(!name || !price || !img) return alert('請至少填寫名稱、價格跟圖片連結！');
+            if(!name || !price) return alert('請填寫完整資訊');
 
             try {
                 await addDoc(collection(db, "products"), {
-                    name, price, imgs: [img], desc,
-                    createdAt: serverTimestamp()
+                    name, price, imgs:[img], desc, createdAt: serverTimestamp()
                 });
-                alert('✨ 上架成功！請去官網看看。');
+                alert('成功發佈！');
                 location.reload();
-            } catch (e) {
-                alert('錯誤：' + e.message);
-            }
+            } catch(e) { alert('失敗：' + e); }
         };
-        // --- 這裡開始是自動讀取訂單與訊息的功能 ---
-        import { onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 1. 自動讀取訂單
-        const qOrders = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-        onSnapshot(qOrders, (snap) => {
+        // --- 功能 B: 自動讀取訂單 ---
+        onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
             const el = document.getElementById('order-list');
-            if (el) el.innerHTML = snap.docs.map(doc => `
+            el.innerHTML = snap.docs.map(doc => `
                 <div class="p-3 bg-slate-50 rounded border border-slate-100 shadow-sm">
-                    <div class="font-bold text-amber-800">總計: $${doc.data().total || 0}</div>
-                    <div class="text-[10px] text-slate-400 mt-1 italic">單號: ${doc.id.slice(-5)}</div>
+                    <div class="font-bold">總計: $${doc.data().total || 0}</div>
+                    <div class="text-[10px] text-slate-400">單號: ${doc.id.slice(-5)}</div>
                 </div>
             `).join('') || '目前沒有訂單';
         });
 
-        // 2. 自動讀取訊息
-        const qMsgs = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-        onSnapshot(qMsgs, (snap) => {
+        // --- 功能 C: 自動讀取訊息 ---
+        onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
             const el = document.getElementById('msg-list');
-            if (el) el.innerHTML = snap.docs.map(doc => `
+            el.innerHTML = snap.docs.map(doc => `
                 <div class="p-3 bg-slate-50 rounded border border-slate-100 shadow-sm">
-                    <div class="text-slate-700">${doc.data().content || '空白內容'}</div>
-                    <div class="text-[10px] text-slate-400 mt-2 italic">${doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000).toLocaleString() : ''}</div>
+                    <div class="text-slate-700">${doc.data().content || '無內容'}</div>
                 </div>
-            `).join('') || '目前沒有訊息';
+            `).join('') || '目前沒有新訊息';
         });
     </script>
 </body>
