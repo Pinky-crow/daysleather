@@ -516,23 +516,40 @@ window.sendQA = async () => {
 };
 
 // --- 2. 訂製需求詢問 ---
+// 1. 訂製需求詢問 (對應你的 ID: cus-email, cus-req)
 window.sendCustom = async () => {
-    const email = document.getElementById('custom-email').value; // 抓訂製區的 Gmail
-    const msg = document.getElementById('custom-msg').value;     // 抓訂製需求
+    const email = document.getElementById('cus-email').value;
+    const msg = document.getElementById('cus-req').value;
 
-    if (!msg) return alert('請輸入訂製需求');
+    if (!msg) return alert('請輸入訂製需求內容');
 
     try {
         const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
         await addDoc(collection(db, "messages"), {
             email: email || "未填寫",
             content: msg,
-            type: "custom", // 標記為訂製詢問
+            type: "custom", 
             createdAt: serverTimestamp()
         });
-        alert('訂製需求已傳送！');
-        document.getElementById('custom-msg').value = '';
+        alert('訂製需求已送出！');
+        document.getElementById('cus-req').value = '';
     } catch (e) { alert('傳送失敗'); }
+};
+
+// 2. 官網下單功能 (對應第 203 行的 f-email 等 ID)
+window.finishOrder = async () => {
+    const email = document.getElementById('f-email').value;
+    const total = document.querySelector('.final-amt')?.innerText || "0";
+
+    try {
+        const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        await addDoc(collection(db, "orders"), {
+            email: email,
+            total: total,
+            createdAt: serverTimestamp()
+        });
+        alert('訂單已提交！');
+    } catch (e) { alert('下單失敗'); }
 };
 
     // 原本就有的掛載語句
