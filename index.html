@@ -558,6 +558,7 @@ async function sendOrder() {
     }
 }
 // ⭐【最關鍵】把這幾行單獨放，確保按鈕能抓到函數
+	window.sendOrder = sendOrder;
 window.sendCustom = sendCustom;
 window.sendQA = sendQA;
 window.toggleMenu = function() {
