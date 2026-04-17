@@ -481,11 +481,7 @@
         }
     }
 
-    function finishOrder() {
-        if(isLocked) return; isLocked = true;
-        hideSteps(); document.getElementById('step-4').classList.remove('hidden'); setStep(4);
-        setTimeout(()=>location.reload(), 5000);
-    }
+
 
     function sendCustom() {
         if(isLocked) return;
