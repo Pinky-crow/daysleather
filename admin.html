@@ -69,15 +69,24 @@
 
         // 監聽訊息 (分流)
         onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
-            let cHTML = ""; let qHTML = "";
-            snap.docs.forEach(doc => {
-                const d = doc.data();
-                const item = `<div class="p-2 border-b bg-white"><b>${d.email}:</b><br>${d.content}</div>`;
-                if(d.type === "custom") cHTML += item; else qHTML += item;
-            });
-            document.getElementById('custom-list').innerHTML = cHTML || "無訂製詢問";
-            document.getElementById('qa-list').innerHTML = qHTML || "無一般 QA";
-        });
+    let customHTML = "";
+    let qaHTML = "";
+
+    snap.docs.forEach(doc => {
+        const d = doc.data();
+        const html = `<div><b>${d.email}</b>: ${d.content}</div>`;
+
+        // 這裡就是「分流」的關鍵：
+        if (d.type === "custom") {
+            customHTML += html;
+        } else if (d.type === "qa") {
+            qaHTML += html;
+        }
+    });
+
+    document.getElementById('custom-list').innerHTML = customHTML || "尚無訂製詢問";
+    document.getElementById('qa-list').innerHTML = qaHTML || "尚無 QA";
+});
     </script>
 </body>
 </html>
