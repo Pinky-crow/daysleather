@@ -64,6 +64,7 @@
         // 監聽訂單
 // admin.html 監聽訂單區塊
 // admin.html 監聽訂單區塊 (第 65 行開始)
+// admin.html 完整訂單監聽與顯示邏輯
 onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
     const orderList = document.getElementById('order-list');
     let html = "";
@@ -71,50 +72,55 @@ onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap)
     snap.docs.forEach(doc => {
         const d = doc.data();
         let itemsHTML = "";
-
+        
+        // 1. 處理商品清單與數量計算
         if (d.items && Array.isArray(d.items)) {
             itemsHTML = d.items.map(item => {
-                const p = Number(item.price) || 0;
-                const q = Number(item.count) || 1; // 抓取商品數量
-                const subtotal = p * q;            // 計算該項商品總額
+                const price = Number(item.price) || 0;
+                const qty = Number(item.count) || 1; // 抓取數量，預設為 1
+                const subtotal = price * qty;        // 計算單項小計
                 
                 return `
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #f0f0f0; padding-bottom:3px;">
-                    <div style="flex:2;">• ${item.name || '商品'}</div>
-                    <div style="flex:1; text-align:center; color:#666;">$${p} x ${q}</div>
-                    <div style="flex:1; text-align:right; font-weight:bold;">$${subtotal}</div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #f0f0f0; padding-bottom:5px; font-size:14px;">
+                    <div style="flex:2; color:#333;">• ${item.name || '未名商品'}</div>
+                    <div style="flex:1; text-align:center; color:#666;">$${price} x ${qty}</div>
+                    <div style="flex:1; text-align:right; font-weight:bold; color:#333;">$${subtotal}</div>
                 </div>`;
             }).join("");
+        } else {
+            itemsHTML = `<div style="color:#999; text-align:center;">無商品明細</div>`;
         }
 
+        // 2. 組合完整的訂單卡片 HTML
         html += `
-            <div style="border:1px solid #eab308; padding:15px; margin-bottom:20px; background:#fffdf2; border-radius:10px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                <div style="margin-bottom:10px;">
-                    <b>👤 訂購人：${d.buyerName}</b><br>
-                    <span style="color:#2563eb; font-weight:bold;">📞 電話：${d.buyerPhone}</span><br>
-                    <span style="color:#666; font-size:13px;">📍 地址：${d.buyerAddress}</span>
+            <div style="border:2px solid #eab308; padding:18px; margin-bottom:25px; background:#fffdf2; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.08);">
+                <div style="margin-bottom:12px; line-height:1.8;">
+                    <div style="font-size:1.2em; font-weight:bold; color:#1a1a1a;">👤 訂購人：${d.buyerName || '未填寫'}</div>
+                    <div style="color:#2563eb; font-weight:bold;">📞 電話：${d.buyerPhone || '未填寫'}</div>
+                    <div style="color:#4b5563; font-size:14px;">📍 地址：${d.buyerAddress || '未填寫'}</div>
                 </div>
                 
-                <div style="background:#fff; padding:10px; border-radius:5px; margin:10px 0;">
-                    <div style="font-size:12px; color:#999; display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <span>商品</span>
-                        <span>單價x數量</span>
-                        <span>小計</span>
+                <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; padding:12px; margin:10px 0;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#9ca3af; margin-bottom:8px; font-weight:bold; border-bottom:1px solid #eee; padding-bottom:4px;">
+                        <span style="flex:2;">商品項目</span>
+                        <span style="flex:1; text-align:center;">單價 x 數量</span>
+                        <span style="flex:1; text-align:right;">小計</span>
                     </div>
                     ${itemsHTML}
                 </div>
 
-                <div style="text-align:right; font-weight:bold; color:#e63946; font-size:1.2em;">
-                    💰 總計金額：NT$ ${d.total || 0}
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:10px; border-top:2px dashed #eee;">
+                    <span style="font-size:12px; color:#999;">下單時間：${d.createdAt ? d.createdAt.toDate().toLocaleString() : '讀取中...'}</span>
+                    <div style="text-align:right; font-weight:bold; color:#e63946; font-size:1.4em;">
+                        💰 總計：NT$ ${d.total || 0}
+                    </div>
                 </div>
             </div>`;
     });
 
-    if (orderList) orderList.innerHTML = html || "目前無訂單";
-});
-
+    // 3. 渲染到畫面上
     if (orderList) {
-        orderList.innerHTML = html || '<div style="text-align:center; color:gray;">目前無訂單</div>';
+        orderList.innerHTML = html || '<div style="text-align:center; padding:50px; color:#ccc;">📭 目前尚無訂單資料</div>';
     }
 });
 // --- 監聽訊息 (分流) ---
