@@ -89,11 +89,13 @@ onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap)
         // 2. 決定最終顯示金額 (若 items 無法計算，才抓取 d.total)
         const finalAmount = calculatedTotal > 0 ? calculatedTotal : (Number(d.total) || 0);
 
+        // 2. 組合顯示模板：包含人、電話、址、內容、總額
         html += `
-            <div style="border:1px solid #eab308; padding:12px; margin-bottom:15px; background:#fffdf2; border-radius:8px;">
+            <div style="border:1px solid #eab308; padding:12px; margin-bottom:15px; background:#fffdf2; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                 <div style="margin-bottom:8px;">
-                    <b>👤 訂購人：</b>${d.buyerName || '未填寫'}<br>
-                    <b>📍 地址：</b>${d.buyerAddress || '未填寫'}
+                    <b style="font-size:1.1em; color:#333;">👤 訂購人：${d.buyerName || '未填寫'}</b><br>
+                    <span style="color:#2563eb;">📞 電話：${d.buyerPhone || '未填寫'}</span><br>
+                    <span style="color:#666;">📍 地址：${d.buyerAddress || '未填寫'}</span>
                 </div>
                 
                 <div style="border-top:1px dashed #ccc; border-bottom:1px dashed #ccc; padding:8px 0; margin:8px 0;">
