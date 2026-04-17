@@ -495,27 +495,28 @@
         if(target) target.classList.add('active');
         window.scrollTo(0,0);
     }
+// 在 index.html 的 <script type="module"> 裡面
 window.sendQA = async () => {
-        const msgInput = document.getElementById('qa-msg');
-        const content = msgInput.value.trim();
+    // 1. 抓取 HTML 裡本來就有的 Gmail 輸入框的值 (請確認 id 是否叫 qa-email)
+    const email = document.getElementById('qa-email').value; 
+    const content = document.getElementById('qa-msg').value;
 
-        if (!content) return alert('請輸入問題內容喔！');
+    if (!content) return alert('內容不能空白喔！');
 
-        try {
-            // 這是將資料「船」過去 Firebase 的核心
-            const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-            await addDoc(collection(db, "messages"), {
-                content: content,
-                status: "未處理",
-                createdAt: serverTimestamp()
-            });
-            
-            alert('問題已傳送至後台！職人將盡快回覆您。');
-            msgInput.value = ''; 
-        } catch (e) {
-            alert('傳送失敗：' + e.message);
-        }
-    };
+    try {
+        const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        
+        // 2. 這裡一定要把 email 放進去傳送
+        await addDoc(collection(db, "messages"), {
+            email: email || "未填寫", // 傳送 Gmail
+            content: content,        // 傳送問題
+            createdAt: serverTimestamp()
+        });
+        
+        alert('已傳送！');
+        document.getElementById('qa-msg').value = '';
+    } catch (e) { console.error("傳送失敗", e); }
+};
 
     // 原本就有的掛載語句
     // 將函數掛載到 window，讓 HTML 的 onclick 可以用到
