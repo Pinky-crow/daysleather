@@ -507,7 +507,7 @@ window.sendQA = async () => {
         await addDoc(collection(db, "messages"), {
             email: email || "未填寫",
             content: msg,
-            type: "qa", // 標記為一般問題
+            type: "custom", // 標記為一般問題
             createdAt: serverTimestamp()
         });
         alert('QA 訊息已傳送！');
