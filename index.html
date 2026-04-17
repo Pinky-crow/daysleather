@@ -495,6 +495,77 @@
         window.scrollTo(0,0);
     }
 
+
+
+	import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// --- A. 真正的訂單傳送 (修改原本的 finishOrder) ---
+async function finishOrder() {
+    if(cart.length === 0) return;
+    const orderData = {
+        customer: {
+            name: document.getElementById('f-name').value,
+            email: document.getElementById('f-email').value,
+            phone: document.getElementById('f-phone').value,
+            addr: document.getElementById('f-addr').value
+        },
+        items: cart,
+        total: document.getElementById('cart-total').innerText,
+        status: "待處理",
+        createdAt: serverTimestamp()
+    };
+    await addDoc(collection(db, "orders"), orderData);
+    hideSteps(); 
+    document.getElementById('step-4').classList.remove('hidden');
+    setStep(4);
+}
+
+// --- B. 傳送諮詢/問題 ---
+async function sendCustom() {
+    const data = {
+        type: "訂製諮詢",
+        email: document.getElementById('cus-email').value,
+        content: document.getElementById('cus-req').value,
+        createdAt: serverTimestamp()
+    };
+    await addDoc(collection(db, "inquiries"), data);
+    showPage('custom_finish');
+}
+
+// --- C. 後台管理功能 (新增商品) ---
+async function adminAddProduct() {
+    const pData = {
+        name: document.getElementById('new-name').value,
+        price: Number(document.getElementById('new-price').value),
+        category: document.getElementById('new-cat').value,
+        desc: document.getElementById('new-desc').value,
+        imgs: [document.getElementById('new-img1').value],
+        date: new Date().toISOString()
+    };
+    await addDoc(collection(db, "products"), pData);
+    alert('商品上傳成功！');
+}
+
+// --- D. 監聽訂單與訊息 (顯示在管理頁面) ---
+onSnapshot(collection(db, "orders"), (snap) => {
+    const container = document.getElementById('admin-orders');
+    container.innerHTML = snap.docs.map(doc => {
+        const d = doc.data();
+        return `<div class="border-b pb-2"><b>${d.customer.name}</b>: NT$${d.total}<br><span class="text-xs opacity-60">${d.items.map(i=>i.name).join(', ')}</span></div>`;
+    }).join('');
+});
+
+onSnapshot(collection(db, "inquiries"), (snap) => {
+    const container = document.getElementById('admin-msgs');
+    container.innerHTML = snap.docs.map(doc => {
+        const d = doc.data();
+        return `<div class="border-b pb-2"><b>[${d.type}]</b> ${d.email}: ${d.content}</div>`;
+    }).join('');
+});
+
+// 別忘了掛載 window
+window.adminAddProduct = adminAddProduct;
+window.finishOrder = finishOrder;
     // 將函數掛載到 window，讓 HTML 的 onclick 可以用到
     window.showPage = showPage;
     window.openDetail = openDetail;
