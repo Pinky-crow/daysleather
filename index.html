@@ -533,7 +533,7 @@ async function sendOrder() {
     // ⭐ 關鍵修正：計算「單價 x 數量」的總金額
     const currentTotal = cart.reduce((sum, item) => {
         const p = Number(item.price) || 0;
-        const q = Number(item.count) || 1; // 抓取數量，預設為 1
+        const q = Number(item.pty) || 1; // 抓取數量，預設為 1
         return sum + (p * q);
     }, 0);
 
