@@ -34,7 +34,7 @@
         }
 
         /* --- 導航欄：滿版滑出且無縫 --- */
-        header { position: sticky; top: 0; z-index: 1000; background: var(--header-bg); }
+  header { position: sticky; top: 0; z-index: 1000; background: var(--header-bg); }
         .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2rem; position: relative; }
 
         .hamburger-trigger { cursor: pointer; padding: 10px; }
@@ -46,13 +46,14 @@
             display: flex; flex-direction: column;
             z-index: 999;
         }
-        .hamburger-trigger:hover .dropdown-panel { max-height: 600px; }
+        .dropdown-panel.active { max-height: 600px; }
         .dropdown-link { 
             color: var(--header-text); padding: 1.2rem; text-align: center; 
             width: 100%; border-top: 1px solid rgba(255,255,255,0.05);
             transition: 0.3s;
         }
         .dropdown-link:hover { background: rgba(255,255,255,0.1); }
+
 
         /* --- 特效：滑鼠移入放大 --- */
         .hover-zoom { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -88,13 +89,13 @@
     <header>
         <div class="nav-container">
             <h1 class="text-2xl font-bold tracking-widest cursor-pointer" style="color: var(--header-text);" onclick="showPage('home')">DAY 's Leather</h1>
-            <div class="hamburger-trigger">
+            <div class="hamburger-trigger" onclick="toggleMenu()">
                 <div class="space-y-1.5">
                     <span class="block w-6 h-0.5 bg-white"></span>
                     <span class="block w-6 h-0.5 bg-white"></span>
                     <span class="block w-6 h-0.5 bg-white"></span>
                 </div>
-                <nav class="dropdown-panel">
+                <nav class="dropdown-panel" id="nav-panel">
                     <div class="dropdown-link" onclick="showPage('news')">新品介紹</div>
                     <div class="dropdown-link" onclick="showPage('products')">產品頁面</div>
                     <div class="dropdown-link" onclick="showPage('custom')">訂製專區</div>
@@ -354,7 +355,18 @@
             </div>
         `).join('');
     }
+function toggleMenu() {
+    const panel = document.getElementById('myDropdown');
+    // toggle 的意思是有就移除，沒有就加上
+    panel.classList.toggle('show');
+}
 
+// 點擊選單連結後，自動縮回選單（選配，建議加上）
+document.querySelectorAll('.dropdown-link').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('myDropdown').classList.remove('show');
+    });
+});
     function filterCat(cat) {
         if(cat==='all') renderItems(products);
         else renderItems(products.filter(p=>p.category===cat));
@@ -576,6 +588,10 @@ window.finishOrder = async () => {
         });
         alert('訂單已提交！');
     } catch (e) { alert('下單失敗'); }
+};
+	window.toggleMenu = function() {
+    const panel = document.getElementById('nav-panel');
+    panel.classList.toggle('active');
 };
 window.sendCustom = sendCustom; 
 window.sendQA = sendQA;
