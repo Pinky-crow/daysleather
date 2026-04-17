@@ -521,45 +521,44 @@ async function sendQA() {
     }
 }
 async function sendOrder() {
-    // 1. 抓取資料 (確認 ID 與 HTML 一致)
+    // 1. 抓取資料
     const name = document.getElementById('f-name')?.value;
     const phone = document.getElementById('f-phone')?.value;
     const address = document.getElementById('f-addr')?.value;
     const email = document.getElementById('f-email')?.value;
 
-    if (!name || !address) return alert("請填寫姓名與地址");
+    if (!name || !address || !phone) return alert("請填寫姓名、電話與地址");
     if (cart.length === 0) return alert("購物車是空的");
+
+    // 2. 在這裡直接計算當下購物車的總金額，最準確
+    const currentTotal = cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
 
     try {
         const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        
-        // 2. 傳送到 Firebase
+
+        // 3. 傳送到 Firebase
         await addDoc(collection(db, "orders"), {
             buyerName: name,
             buyerPhone: phone,
             buyerAddress: address,
-            buyerEmail: email,
-            items: cart,
-            total: typeof totalAmount !== 'undefined' ? totalAmount : 0,
+            buyerEmail: email || "未填寫",
+            items: JSON.parse(JSON.stringify(cart)), // ⭐ 轉成純 JSON 格式確保多商品必過
+            total: currentTotal,                    // ⭐ 使用剛剛算好的數字
             status: "new",
             createdAt: serverTimestamp()
         });
 
-        // 3. 成功後執行原本 finishOrder 的動作
         alert("訂單已成功送出！");
         cart = []; // 清空購物車
         if (typeof renderCart === 'function') renderCart();
         
-        // 直接在這裡寫切換畫面的邏輯
-        hideSteps(); 
+        hideSteps();
         document.getElementById('step-4').classList.remove('hidden');
         setStep(4);
-
-        // 5秒後重新載入
         setTimeout(() => location.reload(), 5000);
 
     } catch (e) {
-        console.error("訂單失敗:", e);
+        console.error("訂單傳送失敗:", e);
         alert("傳送失敗，請稍後再試");
     }
 }
