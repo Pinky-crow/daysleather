@@ -467,11 +467,6 @@ document.querySelectorAll('.dropdown-link').forEach(link => {
         }
     }
 
-    function finishOrder() {
-        if(isLocked) return; isLocked = true;
-        hideSteps(); document.getElementById('step-4').classList.remove('hidden'); setStep(4);
-        setTimeout(()=>location.reload(), 5000);
-    }
 
 // 修改第 476 行開始的內容
 // --- 訂製需求傳送功能 ---
@@ -526,38 +521,45 @@ async function sendQA() {
     }
 }
 async function sendOrder() {
-    // 這裡的 ID 必須跟 HTML 裡的 id="..." 完全一樣
+    // 1. 抓取資料 (確認 ID 與 HTML 一致)
     const name = document.getElementById('f-name')?.value;
     const phone = document.getElementById('f-phone')?.value;
     const address = document.getElementById('f-addr')?.value;
-    
-    if (!name || !address) return alert("請填寫收件人姓名與地址");
+    const email = document.getElementById('f-email')?.value;
+
+    if (!name || !address) return alert("請填寫姓名與地址");
     if (cart.length === 0) return alert("購物車是空的");
 
     try {
         const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
         
+        // 2. 傳送到 Firebase
         await addDoc(collection(db, "orders"), {
             buyerName: name,
             buyerPhone: phone,
             buyerAddress: address,
+            buyerEmail: email,
             items: cart,
-            total: typeof totalAmount !== 'undefined' ? totalAmount : 0, 
+            total: typeof totalAmount !== 'undefined' ? totalAmount : 0,
             status: "new",
             createdAt: serverTimestamp()
         });
 
+        // 3. 成功後執行原本 finishOrder 的動作
         alert("訂單已成功送出！");
-        cart = []; 
+        cart = []; // 清空購物車
         if (typeof renderCart === 'function') renderCart();
         
-        // 這裡要跳轉到「結帳完成」的步驟
+        // 直接在這裡寫切換畫面的邏輯
         hideSteps(); 
         document.getElementById('step-4').classList.remove('hidden');
         setStep(4);
-        
+
+        // 5秒後重新載入
+        setTimeout(() => location.reload(), 5000);
+
     } catch (e) {
-        console.error("訂單傳送失敗:", e);
+        console.error("訂單失敗:", e);
         alert("傳送失敗，請稍後再試");
     }
 }
