@@ -2,37 +2,41 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>DAY 's Leather | 分流管理系統</title>
+    <title>DAY 's Leather | 管理中心</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');</style>
 </head>
-<body class="bg-stone-100 font-['Noto_Serif_TC'] p-6">
+<body class="bg-stone-50 font-['Noto_Serif_TC'] p-6">
     <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 border-b pb-4 text-stone-800">🛠️ DAY 's Leather 分流管理後台</h1>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <div class="bg-white p-5 rounded-2xl shadow-sm border-t-4 border-amber-600">
-                <h3 class="font-bold mb-4 text-amber-900 flex items-center">📋 官網訂單</h3>
-                <div id="order-list" class="space-y-4 text-sm">讀取中...</div>
+        <section class="bg-white p-6 rounded-2xl shadow-sm border mb-8">
+            <h2 class="font-bold mb-4 text-xl text-stone-700">📦 商品快速上架</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" id="p-name" placeholder="商品名稱" class="border p-2 rounded">
+                <input type="number" id="p-price" placeholder="價格" class="border p-2 rounded">
+                <input type="text" id="p-img" placeholder="圖片連結" class="border p-2 rounded md:col-span-2">
+                <button onclick="uploadProduct()" class="md:col-span-2 bg-stone-800 text-white py-2 rounded font-bold">發佈商品</button>
             </div>
+        </section>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border-t-4 border-blue-600">
-                <h3 class="font-bold mb-4 text-blue-900 flex items-center">⚒️ 訂製詢問</h3>
-                <div id="custom-list" class="space-y-4 text-sm text-slate-500 italic">讀取中...</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-amber-500">
+                <h3 class="font-bold mb-3">📋 最新訂單</h3>
+                <div id="order-list" class="space-y-2 text-sm text-stone-500">等待資料...</div>
             </div>
-
-            <div class="bg-white p-5 rounded-2xl shadow-sm border-t-4 border-green-600">
-                <h3 class="font-bold mb-4 text-green-900 flex items-center">💬 一般 QA 問題</h3>
-                <div id="qa-list" class="space-y-4 text-sm text-slate-500 italic">讀取中...</div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-500">
+                <h3 class="font-bold mb-3">🛠️ 訂製詢問</h3>
+                <div id="custom-list" class="space-y-2 text-sm text-stone-500">等待資料...</div>
             </div>
-
+            <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-green-500">
+                <h3 class="font-bold mb-3">💬 一般 QA</h3>
+                <div id="qa-list" class="space-y-2 text-sm text-stone-500">等待資料...</div>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
@@ -42,51 +46,37 @@
             messagingSenderId: "566570388047",
             appId: "1:566570388047:web:b5b1188527ad1828dff83a"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- 共通顯示模板 ---
-        const cardTemplate = (d, id, color) => `
-            <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 shadow-sm relative">
-                <div class="text-${color}-600 font-bold text-xs mb-2">📩 Gmail: ${d.email || '未提供'}</div>
-                <div class="text-stone-800 font-medium">${d.content || d.msg || '無內容'}</div>
-                <div class="text-[10px] text-stone-400 mt-2 text-right italic border-t pt-1">
-                    ${d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString() : '剛才'}
-                </div>
-            </div>
-        `;
+        // 上架功能
+        window.uploadProduct = async () => {
+            const name = document.getElementById('p-name').value;
+            const price = Number(document.getElementById('p-price').value);
+            const img = document.getElementById('p-img').value;
+            try {
+                await addDoc(collection(db, "products"), { name, price, imgs: [img], createdAt: serverTimestamp() });
+                alert('上架成功！');
+            } catch (e) { alert('上架失敗'); }
+        };
 
-        // 1. 監聽訂單 (假設你的訂單存放在 orders)
+        // 監聽訂單
         onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
             document.getElementById('order-list').innerHTML = snap.docs.map(doc => `
-                <div class="p-3 bg-amber-50 rounded-lg border border-amber-100 mb-2">
-                    <div class="font-bold">金額: $${doc.data().total || 0}</div>
-                    <div class="text-[10px] text-stone-400">單號: ${doc.id.slice(-6)}</div>
-                </div>
-            `).join('') || '目前無訂單';
+                <div class="p-2 bg-stone-50 border-b">訂單 $${doc.data().total} <br> <span class="text-[10px]">${doc.data().email}</span></div>
+            `).join('');
         });
 
-        // 2. 監聽訂製詢問 (假設前台傳送時 type 是 'custom')
+        // 監聽訊息 (分流)
         onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
-            const customBox = document.getElementById('custom-list');
-            const qaBox = document.getElementById('qa-list');
-            
-            // 過濾：如果有帶 type='custom' 就放左邊，否則放右邊
-            let customHTML = "";
-            let qaHTML = "";
-
+            let cHTML = ""; let qHTML = "";
             snap.docs.forEach(doc => {
                 const d = doc.data();
-                if(d.type === 'custom' || d.category === '訂製') {
-                    customHTML += cardTemplate(d, doc.id, 'blue');
-                } else {
-                    qaHTML += cardTemplate(d, doc.id, 'green');
-                }
+                const item = `<div class="p-2 border-b bg-white"><b>${d.email}:</b><br>${d.content}</div>`;
+                if(d.type === "custom") cHTML += item; else qHTML += item;
             });
-
-            customBox.innerHTML = customHTML || '目前無訂製詢問';
-            qaBox.innerHTML = qaHTML || '目前無一般 QA';
+            document.getElementById('custom-list').innerHTML = cHTML || "無訂製詢問";
+            document.getElementById('qa-list').innerHTML = qHTML || "無一般 QA";
         });
     </script>
 </body>
