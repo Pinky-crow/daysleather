@@ -68,24 +68,32 @@
         });
 
         // 監聽訊息 (分流)
-        onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
+onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
+    const customList = document.getElementById('custom-list');
+    const qaList = document.getElementById('qa-list');
+    
     let customHTML = "";
     let qaHTML = "";
 
     snap.docs.forEach(doc => {
         const d = doc.data();
-        const html = `<div><b>${d.email}</b>: ${d.content}</div>`;
-
-        // 這裡就是「分流」的關鍵：
+        // 只要這條訊息有 content，我們就把它秀出來
+        const card = `
+            <div class="p-3 bg-stone-50 border rounded shadow-sm mb-2">
+                <div class="text-blue-600 font-bold text-xs">📩 ${d.email || '無信箱'}</div>
+                <div class="text-stone-800 text-sm mt-1">${d.content || '無內容'}</div>
+            </div>`;
+        
+        // 根據 type 分流
         if (d.type === "custom") {
-            customHTML += html;
-        } else if (d.type === "qa") {
-            qaHTML += html;
+            customHTML += card;
+        } else {
+            qaHTML += card;
         }
     });
 
-    document.getElementById('custom-list').innerHTML = customHTML || "尚無訂製詢問";
-    document.getElementById('qa-list').innerHTML = qaHTML || "尚無 QA";
+    if (customList) customList.innerHTML = customHTML || '尚無訂製需求';
+    if (qaList) qaList.innerHTML = qaHTML || '尚無 QA 問題';
 });
     </script>
 </body>
