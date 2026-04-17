@@ -61,12 +61,21 @@
         };
 
         // 監聽訂單
-        onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-            document.getElementById('order-list').innerHTML = snap.docs.map(doc => `
-                <div class="p-2 bg-stone-50 border-b">訂單 $${doc.data().total} <br> <span class="text-[10px]">${doc.data().email}</span></div>
-            `).join('');
-        });
-
+        // 監聽訂單
+onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+    const orderList = document.getElementById('order-list');
+    let html = "";
+    snap.docs.forEach(doc => {
+        const d = doc.data();
+        html += `
+            <div style="border:1px solid #eab308; padding:10px; margin-bottom:10px; background:#fffdf2;">
+                <b>訂購人：</b>${d.buyerName}<br>
+                <b>地址：</b>${d.buyerAddress}<br>
+                <b>內容：</b>${JSON.stringify(d.items)}
+            </div>`;
+    });
+    if(orderList) orderList.innerHTML = html || "目前無訂單";
+});
 // --- 監聽訊息 (分流) ---
     onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
         const customList = document.getElementById('custom-list');
