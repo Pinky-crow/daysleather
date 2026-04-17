@@ -313,300 +313,83 @@
                     <div id="admin-msgs" class="space-y-4 text-sm">正在載入訊息...</div>
                 </div>
            </section>
-	    </div>
-		<footer style="background-color: var(--footer-bg); color: var(--footer-text);" class="py-20 px-6 text-center">
-        <div class="flex justify-center gap-10 mb-8 text-sm">
-            <a href="https://www.instagram.com/daysleather/" target="_blank" class="hover-zoom">IG</a>
-            <a href="https://www.facebook.com/" target="_blank" class="hover-zoom">FB</a>
-            <a href="https://www.threads.net/" target="_blank" class="hover-zoom">THREADS</a>
-            <span class="cursor-pointer hover-zoom" onclick="copyEmail('daysleather@gmail.com')">EMAIL</span>
         </div>
-        <p class="text-[10px] opacity-30">&copy; 2026 DAY 's Leather. ALL RIGHTS RESERVED<span onclick="showPage('admin')" style="cursor:pointer; padding: 10px;">.</span></p>
+    </div> <footer style="background-color: var(--footer-bg); color: var(--footer-text);" class="py-20 px-6 text-center">
+        <div class="flex justify-center gap-10 mb-8 text-sm">
+            <a href="https://www.instagram.com/daysleather/" target="_blank">IG</a>
+            <a href="https://www.facebook.com/" target="_blank">FB</a>
+            <span onclick="copyEmail('daysleather@gmail.com')" style="cursor:pointer">EMAIL</span>
+        </div>
+        <p class="text-[10px] opacity-30">
+            &copy; 2026 DAY 's Leather. ALL RIGHTS RESERVED
+            <span onclick="showPage('admin')" style="cursor:pointer; padding: 10px;">.</span>
+        </p>
     </footer>
-
 
     <div id="img-modal" onclick="this.style.display='none'"><img id="modal-img"></div>
 
-<script type="module">
-    // 引入 Firebase 核心與 Firestore 資料庫功能
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ 修正 1：補齊了 measurementId 漏掉的引號
-    const firebaseConfig = {
-  apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
-  authDomain: "adadd-65e14.firebaseapp.com",
-  projectId: "adadd-65e14",
-  storageBucket: "adadd-65e14.firebasestorage.app",
-  messagingSenderId: "566570388047",
-  appId: "1:566570388047:web:b5b1188527ad1828dff83a",
-  measurementId: "G-J705Q73J0R"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
+            authDomain: "adadd-65e14.firebaseapp.com",
+            projectId: "adadd-65e14",
+            storageBucket: "adadd-65e14.firebasestorage.app",
+            messagingSenderId: "566570388047",
+            appId: "1:566570388047:web:b5b1188527ad1828dff83a",
+            measurementId: "G-J705Q73J0R"
+        };
 
-    // 初始化 Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    let products = []; 
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    // 監聽從 Firestore 讀取資料
-    onSnapshot(collection(db, "products"), (snapshot) => {
-        products = snapshot.docs.map(doc => ({
-            id: doc.id,         
-            ...doc.data()      
-        }));
-        renderItems(products); 
-    });
+        // --- 功能函數 (只保留一份) ---
+        window.showPage = (id) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById(id);
+            if(target) target.classList.add('active');
+            window.scrollTo(0,0);
+        };
 
-    let cart = [];
-    let curItem = null;
-    let isLocked = false; 
+        window.copyEmail = (email) => {
+            navigator.clipboard.writeText(email).then(() => alert('已複製: ' + email));
+        };
 
-    function renderItems(data = products) {
-        const grid = document.getElementById('product-grid');
-        const sortBox = document.getElementById('sortBox');
-        const sort = sortBox ? sortBox.value : 'latest'; // 防止 sortBox 不存在時出錯
-        
-        let sorted = [...data];
-        if(sort==='high') sorted.sort((a,b)=>b.price-a.price);
-        else if(sort==='low') sorted.sort((a,b)=>a.price-b.price);
-        else if(sort==='classic') sorted.sort((a,b)=>new Date(a.date)-new Date(b.date));
-        else if(sort==='latest') sorted.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        window.adminAddProduct = async () => {
+            const name = document.getElementById('new-name').value;
+            const price = Number(document.getElementById('new-price').value);
+            if(!name || !price) return alert('請填寫完整');
+            try {
+                await addDoc(collection(db, "products"), {
+                    name, price,
+                    category: document.getElementById('new-cat').value,
+                    imgs: [document.getElementById('new-img1').value],
+                    desc: document.getElementById('new-desc').value,
+                    createdAt: serverTimestamp()
+                });
+                alert('商品已上傳');
+                location.reload();
+            } catch(e) { alert('失敗: ' + e); }
+        };
 
-        grid.innerHTML = sorted.map(p => `
-            <div class="hover-zoom bg-white p-4 rounded shadow-sm text-center cursor-pointer" onclick="openDetail('${p.id}')">
-                <img src="${(p.imgs && p.imgs[0]) ? p.imgs[0] : 'https://via.placeholder.com/300'}" class="h-60 w-full object-cover mb-4" style="background-color: var(--main-bg);">
-                <h4 class="font-bold">${p.name}</h4>
-                <p class="opacity-50">NT$ ${p.price}</p>
-            </div>
-        `).join('');
-    }
-
-    function filterCat(cat) {
-        if(cat==='all') renderItems(products);
-        else renderItems(products.filter(p=>p.category===cat));
-    }
-
-    function openDetail(id) {
-        // ✅ 修正 3：Firebase ID 是字串，確保比對正確
-        curItem = products.find(p => p.id === id);
-        if(!curItem) return;
-
-        const mainImg = document.getElementById('det-img');
-        // 確保 imgs 存在才讀取
-        mainImg.src = (curItem.imgs && curItem.imgs[0]) ? curItem.imgs[0] : '';
-
-        const thumbBar = document.getElementById('thumb-bar');
-        if (curItem.imgs && thumbBar) {
-            thumbBar.innerHTML = curItem.imgs.map(url => `
-                <div class="w-1/3 cursor-pointer border-2 border-transparent hover:border-stone-800 transition-all overflow-hidden rounded">
-                    <img src="${url}" class="w-full h-20 object-cover" onclick="changeMainImg('${url}')">
-                </div>
-            `).join('');
-        }
-
-        document.getElementById('det-name').innerText = curItem.name;
-        document.getElementById('det-price').innerText = `NT$ ${curItem.price}`;
-        document.getElementById('det-desc').innerText = curItem.desc;
-        
-        showPage('item-detail');
-    }
-
-    function changeMainImg(url) {
-        document.getElementById('det-img').src = url;
-    }
-
-    function openImageModal(src) {
-        const m = document.getElementById('img-modal');
-        document.getElementById('modal-img').src = src;
-        m.style.display = 'flex';
-    }
-
-    function updateCart() {
-        const list = document.getElementById('cart-list');
-        let total = 0;
-        list.innerHTML = cart.map((item, idx) => {
-            total += item.price * item.qty;
-            // 購物車縮圖也改用 imgs[0]
-            const cartImg = (item.imgs && item.imgs[0]) ? item.imgs[0] : '';
-            return `
-                <div class="flex items-center gap-4 border-b pb-4">
-                    <button onclick="removeCart(${idx})" class="text-red-400">✕</button>
-                    <img src="${cartImg}" class="w-20 h-20 object-cover">
-                    <div class="flex-1 flex justify-between">
-                        <div><h5 class="font-bold">${item.name}</h5><p class="text-sm">NT$ ${item.price} x ${item.qty}</p></div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        document.getElementById('cart-total').innerText = total;
-        document.querySelectorAll('.final-amt').forEach(el=>el.innerText = total);
-    }
-
-    function addToCartDetail() {
-        const qty = parseInt(document.getElementById('det-qty').value);
-        const exist = cart.find(i=>i.id===curItem.id);
-        if(exist) exist.qty += qty; else cart.push({...curItem, qty});
-        updateCart(); alert('已加入購物車');
-    }
-
-    function quickBuy(id) {
-        const p = products.find(x=>x.id===id);
-        cart = [{...p, qty: 1}];
-        updateCart(); toStep1(); showPage('cart_view');
-    }
-
-    function buyNow() {
-        cart = [{...curItem, qty: parseInt(document.getElementById('det-qty').value)}];
-        updateCart(); toStep1(); showPage('cart_view');
-    }
-
-    function removeCart(idx) { cart.splice(idx,1); updateCart(); }
-
-    function toStep1() { hideSteps(); document.getElementById('step-1').classList.remove('hidden'); setStep(1); }
-    function toStep2() { if(cart.length===0) return alert('空購物車'); hideSteps(); document.getElementById('step-2').classList.remove('hidden'); setStep(2); }
-    
-    function validateStep2() {
-        const f = ['email','name','phone','addr'];
-        let ok = true;
-        f.forEach(id=>{
-            const el = document.getElementById('f-'+id);
-            const hint = document.getElementById('err-'+id);
-            if(!el.value.trim()){ hint.style.display='block'; ok=false; } else hint.style.display='none';
+        // 監聽訂單與訊息
+        onSnapshot(collection(db, "orders"), (snap) => {
+            const container = document.getElementById('admin-orders');
+            if(container) container.innerHTML = snap.docs.map(doc => {
+                const d = doc.data();
+                return `<div class="p-2 border-b">訂單: NT$${d.total} (${d.status || '未處理'})</div>`;
+            }).join('');
         });
-        if(ok) {
-            hideSteps(); document.getElementById('step-3').classList.remove('hidden'); setStep(3);
-            const m = document.getElementById('pay-method').value;
-            document.getElementById('info-bank').classList.toggle('hidden', m!=='bank');
-            document.getElementById('info-paypal').classList.toggle('hidden', m!=='paypal');
-        }
-    }
 
-
-
-    function sendCustom() {
-        if(isLocked) return;
-        const email = document.getElementById('cus-email');
-        const req = document.getElementById('cus-req');
-        let ok = true;
-        if(!email.value.trim()){ document.getElementById('err-cus-email').style.display='block'; ok=false; } else document.getElementById('err-cus-email').style.display='none';
-        if(!req.value.trim()){ document.getElementById('err-cus-req').style.display='block'; ok=false; } else document.getElementById('err-cus-req').style.display='none';
-        
-        if(ok) {
-            isLocked = true;
-            showPage('custom_finish');
-            setTimeout(()=> { showPage('home'); isLocked = false; }, 5000);
-        }
-    }
-
-    function sendQA() { alert('問題已傳送'); document.getElementById('qa-msg').value=''; }
-
-    function copyEmail(email) {
-        navigator.clipboard.writeText(email).then(()=>alert('已複製 Gmail: ' + email));
-    }
-
-    function hideSteps() { for(let i=1;i<=4;i++) { const el = document.getElementById('step-'+i); if(el) el.classList.add('hidden'); } }
-    function setStep(n) { 
-        for(let i=1;i<=4;i++) { const el = document.getElementById('ps-'+i); if(el) el.classList.remove('active'); }
-        for(let i=1;i<=n;i++) { const el = document.getElementById('ps-'+i); if(el) el.classList.add('active'); }
-    }
-
-    function showPage(id) {
-        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-        const target = document.getElementById(id);
-        if(target) target.classList.add('active');
-        window.scrollTo(0,0);
-    }
-
-
-
-	import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// --- A. 真正的訂單傳送 (修改原本的 finishOrder) ---
-async function finishOrder() {
-    if(cart.length === 0) return;
-    const orderData = {
-        customer: {
-            name: document.getElementById('f-name').value,
-            email: document.getElementById('f-email').value,
-            phone: document.getElementById('f-phone').value,
-            addr: document.getElementById('f-addr').value
-        },
-        items: cart,
-        total: document.getElementById('cart-total').innerText,
-        status: "待處理",
-        createdAt: serverTimestamp()
-    };
-    await addDoc(collection(db, "orders"), orderData);
-    hideSteps(); 
-    document.getElementById('step-4').classList.remove('hidden');
-    setStep(4);
-}
-
-// --- B. 傳送諮詢/問題 ---
-async function sendCustom() {
-    const data = {
-        type: "訂製諮詢",
-        email: document.getElementById('cus-email').value,
-        content: document.getElementById('cus-req').value,
-        createdAt: serverTimestamp()
-    };
-    await addDoc(collection(db, "inquiries"), data);
-    showPage('custom_finish');
-}
-
-// --- C. 後台管理功能 (新增商品) ---
-async function adminAddProduct() {
-    const pData = {
-        name: document.getElementById('new-name').value,
-        price: Number(document.getElementById('new-price').value),
-        category: document.getElementById('new-cat').value,
-        desc: document.getElementById('new-desc').value,
-        imgs: [document.getElementById('new-img1').value],
-        date: new Date().toISOString()
-    };
-    await addDoc(collection(db, "products"), pData);
-    alert('商品上傳成功！');
-}
-
-// --- D. 監聽訂單與訊息 (顯示在管理頁面) ---
-onSnapshot(collection(db, "orders"), (snap) => {
-    const container = document.getElementById('admin-orders');
-    container.innerHTML = snap.docs.map(doc => {
-        const d = doc.data();
-        return `<div class="border-b pb-2"><b>${d.customer.name}</b>: NT$${d.total}<br><span class="text-xs opacity-60">${d.items.map(i=>i.name).join(', ')}</span></div>`;
-    }).join('');
-});
-
-onSnapshot(collection(db, "inquiries"), (snap) => {
-    const container = document.getElementById('admin-msgs');
-    container.innerHTML = snap.docs.map(doc => {
-        const d = doc.data();
-        return `<div class="border-b pb-2"><b>[${d.type}]</b> ${d.email}: ${d.content}</div>`;
-    }).join('');
-});
-
-// 別忘了掛載 window
-window.adminAddProduct = adminAddProduct;
-window.finishOrder = finishOrder;
-    // 將函數掛載到 window，讓 HTML 的 onclick 可以用到
-    window.showPage = showPage;
-    window.openDetail = openDetail;
-    window.filterCat = filterCat;
-    window.changeMainImg = changeMainImg;
-    window.addToCartDetail = addToCartDetail;
-    window.buyNow = buyNow;
-    window.quickBuy = quickBuy;
-    window.removeCart = removeCart;
-    window.copyEmail = copyEmail;
-    window.toStep1 = toStep1;
-    window.toStep2 = toStep2;
-    window.validateStep2 = validateStep2;
-    window.finishOrder = finishOrder;
-    window.sendCustom = sendCustom;
-    window.sendQA = sendQA;
-    window.openImageModal = openImageModal;
-    window.renderItems = renderItems;
-
-</script>
+        onSnapshot(collection(db, "messages"), (snap) => {
+            const container = document.getElementById('admin-msgs');
+            if(container) container.innerHTML = snap.docs.map(doc => {
+                const d = doc.data();
+                return `<div class="p-2 border-b">詢問: ${d.content}</div>`;
+            }).join('');
+        });
+    </script>
 </body>
 </html>
