@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAY 's Leather | 職人工藝</title>
+    <title>DAY 's Leather</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap');
@@ -107,10 +107,12 @@
         </div>
     </header>
 
-  <div id="home" class="page active px-6 py-20 text-center">
+    <div id="home" class="page active px-6 py-20 text-center">
         <h2 class="text-4xl font-bold mb-10" style="color: var(--main-text);">為了獨一無二的你</h2>
-        <img src="https://cdn.discordapp.com/attachments/1494661634512392285/1494665235812974612/IMG_6112.jpg?ex=69e36ef9&is=69e21d79&hm=e0608fff37c8b3f64d1d1ba29b1d45e77638f7704abc62c04a79ade7685f1b27&" class="hover-zoom rounded shadow-2xl mb-12 w-full max-w-4xl mx-auto">
+        <img src="https://cdn.discordapp.com/attachments/1494661634512392285/1494665235280302230/IMG_6110.jpg?ex=69e36ef9&is=69e21d79&hm=7404c1d5799633b5c3df4a74030185a696c52620cc4b3637a66b5f70d74a2dde&" class="hover-zoom rounded shadow-2xl mb-12 w-full max-w-4xl mx-auto">
         <p class="text-lg opacity-80 leading-relaxed max-w-2xl mx-auto">她，在你身邊靜靜地記錄著你的每一天。</p>
+    </div>
+
     <div id="news" class="page px-6 py-16">
         <div class="max-w-5xl mx-auto">
             <h2 class="text-3xl font-bold mb-16 border-l-8 border-stone-800 pl-4 italic">Spring 2026 Collection</h2>
@@ -168,7 +170,7 @@
                     <input type="number" id="det-qty" value="1" min="1" class="border p-2 w-20 text-center">
                 </div>
                 <div class="flex gap-4">
-                                      <button onclick="addToCartDetail()" class="flex-1 py-4 text-white font-bold hover-zoom bg-stone-500">加入購物車</button>
+                    <button onclick="addToCartDetail()" class="flex-1 py-4 text-white font-bold hover-zoom bg-stone-500">加入購物車</button>
                     <button onclick="buyNow()" class="flex-1 py-4 text-white font-bold hover-zoom" style="background-color: var(--buy-btn-bg);">直接購買</button>
                 </div>
                 <div id="det-desc" class="border-t pt-6 text-sm opacity-70 leading-loose"></div>
@@ -290,7 +292,6 @@
         <div class="flex justify-center gap-10 mb-8 text-sm"><a href="https://www.instagram.com/daysleather/" target="_blank" class="hover-zoom">IG</a>
 
     <a href="https://www.facebook.com/你的粉專名稱" target="_blank" class="hover-zoom">FB</a>
-
     <a href="https://www.threads.com/@daysleather" target="_blank" class="hover-zoom">THREADS</a>
 
     <span class="cursor-pointer hover-zoom" onclick="copyEmail('daysleather@gmail.com')">GMAIL</span>
@@ -471,7 +472,7 @@ document.querySelectorAll('.dropdown-link').forEach(link => {
 async function sendCustom() {
     const emailField = document.getElementById('custom-email');
     const msgField = document.getElementById('custom-msg');
-    
+
     if (!msgField || !msgField.value.trim()) {
         alert("請輸入需求內容");
         return;
@@ -479,7 +480,7 @@ async function sendCustom() {
 
     try {
         const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        
+
         await addDoc(collection(db, "messages"), {
             email: emailField ? emailField.value : "未填寫",
             content: msgField.value,
@@ -553,7 +554,7 @@ async function sendOrder() {
         alert("訂單已成功送出！");
         cart = []; 
         if (typeof renderCart === 'function') renderCart();
-        
+
         hideSteps();
         document.getElementById('step-4').classList.remove('hidden');
         setStep(4);
