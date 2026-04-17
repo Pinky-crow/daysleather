@@ -525,7 +525,38 @@ async function sendQA() {
         alert("傳送失敗");
     }
 }
+async function sendOrder() {
+    const name = document.getElementById('order-name')?.value;
+    const phone = document.getElementById('order-phone')?.value;
+    const address = document.getElementById('order-address')?.value;
+    
+    // 假設你的購物車資料存在 cart 變數裡
+    if (!name || !address) return alert("請填寫姓名與地址");
+    if (cart.length === 0) return alert("購物車是空的");
 
+    try {
+        const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        
+        // 這裡會建立一個新的 "orders" 集合
+        await addDoc(collection(db, "orders"), {
+            buyerName: name,
+            buyerPhone: phone,
+            buyerAddress: address,
+            items: cart,
+            total: totalAmount, // 假設你有計算總金額
+            status: "new",
+            createdAt: serverTimestamp()
+        });
+
+        alert("訂單已成功送出！");
+        cart = []; // 清空購物車
+        renderCart(); // 重新渲染購物車畫面
+        closeOrderModal(); // 關閉訂單視窗
+    } catch (e) {
+        console.error("訂單傳送失敗:", e);
+        alert("傳送失敗，請稍後再試");
+    }
+}
 // ⭐【最關鍵】把這幾行單獨放，確保按鈕能抓到函數
 window.sendCustom = sendCustom;
 window.sendQA = sendQA;
