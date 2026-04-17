@@ -72,7 +72,16 @@ onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap)
     snap.docs.forEach(doc => {
         const d = doc.data();
         let itemsHTML = "";
-        
+        let calculatedTotal = 0;
+if (d.items && Array.isArray(d.items)) {
+    itemsHTML = d.items.map(item => {
+        const p = Number(item.price) || 0;
+        const q = Number(item.qty || item.count) || 1;
+        const subtotal = p * q;
+        calculatedTotal += subtotal; // ⭐ 在後台重新計算總額
+        // ... 回傳 HTML ...
+    }).join("");
+}
         // 1. 處理商品清單與數量計算
         if (d.items && Array.isArray(d.items)) {
             itemsHTML = d.items.map(item => {
@@ -111,7 +120,7 @@ onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap)
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:10px; border-top:2px dashed #eee;">
                     <span style="font-size:12px; color:#999;">下單時間：${d.createdAt ? d.createdAt.toDate().toLocaleString() : '讀取中...'}</span>
                     <div style="text-align:right; font-weight:bold; color:#e63946; font-size:1.4em;">
-                        💰 總計：NT$ ${d.total || 0}
+                        💰 總計：NT$ ${calculatedTotal}
                     </div>
                 </div>
             </div>`;
