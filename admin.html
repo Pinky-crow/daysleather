@@ -70,44 +70,48 @@ onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap)
 
     snap.docs.forEach(doc => {
         const d = doc.data();
-        
-        // 1. 強制重新計算總金額，避免前端傳送錯誤
-        let calculatedTotal = 0;
         let itemsHTML = "";
 
         if (d.items && Array.isArray(d.items)) {
             itemsHTML = d.items.map(item => {
                 const p = Number(item.price) || 0;
-                calculatedTotal += p;
-                return `<div style="display:flex; justify-content:space-between; margin-bottom:2px; font-size:0.9em;">
-                            <span>• ${item.name || '商品'}</span>
-                            <span>$${p}</span>
-                        </div>`;
+                const q = Number(item.count) || 1; // 抓取商品數量
+                const subtotal = p * q;            // 計算該項商品總額
+                
+                return `
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #f0f0f0; padding-bottom:3px;">
+                    <div style="flex:2;">• ${item.name || '商品'}</div>
+                    <div style="flex:1; text-align:center; color:#666;">$${p} x ${q}</div>
+                    <div style="flex:1; text-align:right; font-weight:bold;">$${subtotal}</div>
+                </div>`;
             }).join("");
         }
 
-        // 2. 決定最終顯示金額 (若 items 無法計算，才抓取 d.total)
-        const finalAmount = calculatedTotal > 0 ? calculatedTotal : (Number(d.total) || 0);
-
-        // 2. 組合顯示模板：包含人、電話、址、內容、總額
         html += `
-            <div style="border:1px solid #eab308; padding:12px; margin-bottom:15px; background:#fffdf2; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                <div style="margin-bottom:8px;">
-                    <b style="font-size:1.1em; color:#333;">👤 訂購人：${d.buyerName || '未填寫'}</b><br>
-                    <span style="color:#2563eb;">📞 電話：${d.buyerPhone || '未填寫'}</span><br>
-                    <span style="color:#666;">📍 地址：${d.buyerAddress || '未填寫'}</span>
+            <div style="border:1px solid #eab308; padding:15px; margin-bottom:20px; background:#fffdf2; border-radius:10px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                <div style="margin-bottom:10px;">
+                    <b>👤 訂購人：${d.buyerName}</b><br>
+                    <span style="color:#2563eb; font-weight:bold;">📞 電話：${d.buyerPhone}</span><br>
+                    <span style="color:#666; font-size:13px;">📍 地址：${d.buyerAddress}</span>
                 </div>
                 
-                <div style="border-top:1px dashed #ccc; border-bottom:1px dashed #ccc; padding:8px 0; margin:8px 0;">
-                    <b style="font-size:0.85em; color:#666;">📜 訂購內容：</b><br>
-                    ${itemsHTML || '<div>無內容</div>'}
+                <div style="background:#fff; padding:10px; border-radius:5px; margin:10px 0;">
+                    <div style="font-size:12px; color:#999; display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span>商品</span>
+                        <span>單價x數量</span>
+                        <span>小計</span>
+                    </div>
+                    ${itemsHTML}
                 </div>
 
-                <div style="text-align:right; font-weight:bold; color:#e63946; font-size:1.1em;">
-                    💰 總金額：NT$ ${Math.floor(finalAmount)}
+                <div style="text-align:right; font-weight:bold; color:#e63946; font-size:1.2em;">
+                    💰 總計金額：NT$ ${d.total || 0}
                 </div>
             </div>`;
     });
+
+    if (orderList) orderList.innerHTML = html || "目前無訂單";
+});
 
     if (orderList) {
         orderList.innerHTML = html || '<div style="text-align:center; color:gray;">目前無訂單</div>';
