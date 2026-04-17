@@ -474,44 +474,65 @@ document.querySelectorAll('.dropdown-link').forEach(link => {
     }
 
 // 修改第 476 行開始的內容
+// --- 訂製需求傳送功能 ---
 async function sendCustom() {
-    // 1. 抓取資料 (確保 ID 對齊你的 HTML)
     const emailField = document.getElementById('custom-email');
     const msgField = document.getElementById('custom-msg');
     
-    const email = emailField ? emailField.value : "";
-    const msg = msgField ? msgField.value : "";
-
-    // 2. 基本檢查
-    if (!msg.trim()) {
-        alert("請輸入訂製需求內容");
+    if (!msgField || !msgField.value.trim()) {
+        alert("請輸入需求內容");
         return;
     }
 
     try {
-        // 3. 核心：這才是真正傳送到 Firebase 的動作！
         const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
         
         await addDoc(collection(db, "messages"), {
-            email: email,
-            content: msg,
+            email: emailField ? emailField.value : "未填寫",
+            content: msgField.value,
             type: "custom",
             createdAt: serverTimestamp()
         });
 
-        // 4. 成功後的動作
         alert("訂製需求已成功送出！");
-        if (msgField) msgField.value = ""; // 清空輸入框
-        showPage('custom_finish');       // 跳轉到感謝頁面
-        
+        msgField.value = ""; 
+        showPage('custom_finish');
     } catch (e) {
-        console.error("發送失敗:", e);
-        alert("傳送失敗，請檢查網路連線");
+        console.error("傳送出錯：", e);
+        alert("傳送失敗，請稍後再試");
     }
 }
 
-// ⭐ 重要：一定要加這行，按鈕才按得動
+// --- QA 詢問傳送功能 ---
+async function sendQA() {
+    const qaField = document.getElementById('qa-msg');
+    if (!qaField || !qaField.value.trim()) {
+        alert("請輸入問題內容");
+        return;
+    }
+
+    try {
+        const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        await addDoc(collection(db, "messages"), {
+            email: "QA用戶",
+            content: qaField.value,
+            type: "qa",
+            createdAt: serverTimestamp()
+        });
+        alert("問題已送出！");
+        qaField.value = "";
+    } catch (e) {
+        alert("傳送失敗");
+    }
+}
+
+// ⭐【最關鍵】把這幾行單獨放，確保按鈕能抓到函數
 window.sendCustom = sendCustom;
+window.sendQA = sendQA;
+window.toggleMenu = function() {
+    const panel = document.getElementById('nav-panel');
+    if (panel) panel.classList.toggle('active');
+};
 
 window.sendQA = async function() {
     const msg = document.getElementById('qa-msg').value;
