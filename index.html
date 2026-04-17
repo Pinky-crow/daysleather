@@ -267,7 +267,7 @@
         <div class="flex flex-col gap-6 text-xl"><a href="https://www.instagram.com/daysleather/" target="_blank" class="hover-zoom">Instagram</a>
 	<a href="https://www.facebook.com/你的專頁名稱" target="_blank" class="hover-zoom">Facebook</a>
     	<a href="https://www.threads.net/@你的帳號" target="_blank" class="hover-zoom">Threads</a>
-            <div class="cursor-pointer font-bold text-amber-900" onclick="copyEmail('daysleather@gmail.com')">Gmail: daysleather@gmail.com (點擊複製)</div>
+            <div class="cursor-pointer font-bold text-amber-900" onclick="copyEmail('daysleather@gmail.com')">Gmail: daysleather@gmail.com</div>
         </div>
     </div>
 
@@ -281,7 +281,7 @@
                 </details>
             </div>
             <div class="mt-20 border-t pt-10">
-                <h4 class="font-bold mb-4">傳送您的問題至後台</h4>
+                <h4 class="font-bold mb-4">詢問您好奇的部分</h4>
                 <textarea id="qa-msg" class="w-full border p-4" placeholder="在這裡留言..."></textarea>
                 <button onclick="sendQA()" class="mt-4 px-8 py-2 bg-stone-800 text-white rounded">傳送</button>
             </div>
@@ -495,7 +495,29 @@
         if(target) target.classList.add('active');
         window.scrollTo(0,0);
     }
+window.sendQA = async () => {
+        const msgInput = document.getElementById('qa-msg');
+        const content = msgInput.value.trim();
 
+        if (!content) return alert('請輸入問題內容喔！');
+
+        try {
+            // 這是將資料「船」過去 Firebase 的核心
+            const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            await addDoc(collection(db, "messages"), {
+                content: content,
+                status: "未處理",
+                createdAt: serverTimestamp()
+            });
+            
+            alert('問題已傳送至後台！職人將盡快回覆您。');
+            msgInput.value = ''; 
+        } catch (e) {
+            alert('傳送失敗：' + e.message);
+        }
+    };
+
+    // 原本就有的掛載語句
     // 將函數掛載到 window，讓 HTML 的 onclick 可以用到
     window.showPage = showPage;
     window.openDetail = openDetail;
