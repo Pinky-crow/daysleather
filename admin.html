@@ -2,236 +2,84 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>DAY 's Leather | 職人管理後台</title>
+    <title>DAY 's Leather | 管理後台</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #f4f1ee; font-family: sans-serif; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-    </style>
 </head>
-<body class="p-8">
+<body class="bg-slate-50 p-6 md:p-12">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-10 border-b pb-6">
+            <h1 class="text-3xl font-bold text-slate-800">📦 商品上架系統</h1>
+            <a href="index.html" target="_blank" class="text-blue-600 hover:underline">查看官網 ↗</a>
+        </header>
 
-    <div class="max-w-5xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 border-b-2 border-stone-800 pb-2">管理後台</h1>
-
-        <div class="flex gap-4 mb-8">
-            <button onclick="showTab('tab-products')" class="px-6 py-2 bg-stone-800 text-white rounded">商品管理</button>
-            <button onclick="showTab('tab-orders')" class="px-6 py-2 bg-stone-600 text-white rounded">查看訂單</button>
-            <button onclick="showTab('tab-inbox')" class="px-6 py-2 bg-stone-600 text-white rounded">諮詢與留言</button>
-        </div>
-
-        <div id="tab-products" class="tab-content active">
-            <div class="bg-white p-6 rounded shadow-sm mb-8">
-                <h2 class="text-xl font-bold mb-4">新增商品</h2>
-<div class="space-y-4">
-    <input type="text" id="p-name" placeholder="商品名稱" class="w-full border p-2">
-    <input type="number" id="p-price" placeholder="價格" class="w-full border p-2">
-    <textarea id="p-desc" placeholder="商品描述" class="w-full border p-2"></textarea>
-
-    <div class="bg-gray-50 p-3 rounded border border-dashed border-gray-300">
-        <label class="block text-sm font-bold mb-1 text-amber-800">商品圖片 (第一張為封面)</label>
-        <input type="file" id="p-file" multiple accept="image/*" onchange="previewImages()" class="text-sm">
-        
-        <div id="image-preview" class="flex gap-2 mt-3 flex-wrap"></div>
-    </div>
-
-    <button id="upload-btn" onclick="addProduct()" class="w-full bg-amber-800 text-white p-3 rounded">上架商品</button>
-</div>
-                <button onclick="addProduct()" class="mt-4 w-full py-2 bg-green-700 text-white font-bold rounded">上架商品</button>
-            </div>
-            <div id="admin-product-list" class="grid grid-cols-1 gap-4">
+        <div class="grid gap-8">
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">商品名稱</label>
+                        <input type="text" id="name" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">價格 (NT$)</label>
+                        <input type="number" id="price" class="w-full border p-3 rounded-lg">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-2">圖片網址</label>
+                        <input type="text" id="img" placeholder="https://..." class="w-full border p-3 rounded-lg">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-2">商品描述</label>
+                        <textarea id="desc" rows="4" class="w-full border p-3 rounded-lg"></textarea>
+                    </div>
+                    <button onclick="upload()" class="md:col-span-2 bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                        正式發佈到官網
+                    </button>
                 </div>
-        </div>
+            </section>
 
-        <div id="tab-orders" class="tab-content">
-            <h2 class="text-xl font-bold mb-4">所有訂單</h2>
-            <div id="admin-order-list" class="space-y-4"></div>
-        </div>
-
-        <div id="tab-inbox" class="tab-content">
-            <h2 class="text-xl font-bold mb-4">客戶留言與訂製需求</h2>
-            <div id="admin-inbox-list" class="space-y-4"></div>
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold mb-4">🔔 最近動態</h3>
+                <div id="status" class="text-sm text-slate-500">正在連線至資料庫...</div>
+            </section>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔥 請填入你的 Firebase Config (必須與前台一致)
         const firebaseConfig = {
-  apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
-  authDomain: "adadd-65e14.firebaseapp.com",
-  projectId: "adadd-65e14",
-  storageBucket: "adadd-65e14.firebasestorage.app",
-  messagingSenderId: "566570388047",
-  appId: "1:566570388047:web:b5b1188527ad1828dff83a",
-  measurementId: "G-J705Q73J0R"
+            apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
+            authDomain: "adadd-65e14.firebaseapp.com",
+            projectId: "adadd-65e14",
+            storageBucket: "adadd-65e14.firebasestorage.app",
+            messagingSenderId: "566570388047",
+            appId: "1:566570388047:web:b5b1188527ad1828dff83a"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        document.getElementById('status').innerText = "✅ 已連線至 Firebase，隨時可以上架。";
 
-        // --- 分頁切換 ---
-        window.showTab = (id) => {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+        window.upload = async () => {
+            const name = document.getElementById('name').value;
+            const price = Number(document.getElementById('price').value);
+            const img = document.getElementById('img').value;
+            const desc = document.getElementById('desc').value;
+
+            if(!name || !price || !img) return alert('請至少填寫名稱、價格跟圖片連結！');
+
+            try {
+                await addDoc(collection(db, "products"), {
+                    name, price, imgs: [img], desc,
+                    createdAt: serverTimestamp()
+                });
+                alert('✨ 上架成功！請去官網看看。');
+                location.reload();
+            } catch (e) {
+                alert('錯誤：' + e.message);
+            }
         };
-// ...前面的 Firebase 初始化代碼保持不變...
-
-// 🚀 1. 預覽函數：放在 addProduct 上面或下面都可以
-window.previewImages = () => {
-    const preview = document.getElementById('image-preview');
-    const files = document.getElementById('p-file').files;
-    preview.innerHTML = ''; // 清空先前的預覽
-
-    Array.from(files).forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const div = document.createElement('div');
-            div.className = "relative inline-block";
-            div.innerHTML = `
-                <img src="${e.target.result}" class="w-20 h-20 object-cover rounded border-2 border-amber-800 shadow-sm">
-                <span class="absolute top-0 left-0 bg-amber-800 text-white text-[10px] px-1.5 rounded-br font-bold">
-                    ${index + 1}
-                </span>
-            `;
-            preview.appendChild(div);
-        };
-        reader.readAsDataURL(file);
-    });
-};
-
-// 🚀 2. 修改後的上傳函數 (替換掉舊的 addProduct)
-window.addProduct = async () => {
-    const name = document.getElementById('p-name').value;
-    const price = Number(document.getElementById('p-price').value);
-    const desc = document.getElementById('p-desc').value;
-    const files = document.getElementById('p-file').files; 
-    const btn = document.getElementById('upload-btn');
-
-    if (!name || !price || files.length === 0) return alert('請填寫完整資訊並選擇圖片！');
-
-    try {
-        btn.disabled = true;
-        const imgUrls = [];
-
-        // 依序上傳
-        for (let i = 0; i < files.length; i++) {
-            btn.innerText = `上傳中 (${i+1}/${files.length})...`;
-            const file = files[i];
-            // 設定存檔路徑
-            const storageRef = ref(storage, 'products/' + Date.now() + "_" + file.name);
-            await uploadBytes(storageRef, file);
-            const url = await getDownloadURL(storageRef);
-            imgUrls.push(url);
-        }
-
-        // 存入資料庫
-        await addDoc(collection(db, "products"), {
-            name,
-            price,
-            imgs: imgUrls, // 這裡存的是網址清單
-            desc,
-            timestamp: new Date()
-        });
-
-        alert('商品上架成功！');
-        location.reload();
-    } catch (e) {
-        alert('錯誤：' + e.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "上架商品";
-    }
-};
-        // --- 商品管理邏輯 ---
- window.addProduct = async () => {
-    const name = document.getElementById('p-name').value;
-    const price = Number(document.getElementById('p-price').value);
-    const desc = document.getElementById('p-desc').value;
-    const files = document.getElementById('p-file').files; // 這是複數檔案
-    const btn = document.getElementById('upload-btn');
-
-    if (!name || !price || files.length === 0) return alert('請填寫名稱、價格並選取圖片');
-
-    try {
-        btn.disabled = true;
-        const imgUrls = []; // 用來放所有圖片網址的「籃子」
-
-        // 🚀 核心邏輯：跑迴圈上傳每一張圖
-        for (let i = 0; i < files.length; i++) {
-            btn.innerText = `圖片上傳中 (${i + 1}/${files.length})...`;
-            const file = files[i];
-            const storageRef = ref(storage, 'products/' + Date.now() + "_" + file.name);
-            await uploadBytes(storageRef, file);
-            const url = await getDownloadURL(storageRef);
-            imgUrls.push(url); // 把網址存進籃子裡
-        }
-
-        // 💾 存入 Firestore：欄位名稱改為 imgs
-        await addDoc(collection(db, "products"), {
-            name,
-            price,
-            imgs: imgUrls, // 這裡存的是 [網址1, 網址2, ...]
-            desc,
-            timestamp: new Date()
-        });
-
-        alert('全部商品圖片已上傳成功！');
-        location.reload();
-    } catch (e) {
-        alert('上傳失敗：' + e.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "上架商品";
-    }
-};
-        window.deleteProduct = async (id) => {
-            if(confirm('確定要下架此商品嗎？')) await deleteDoc(doc(db, "products", id));
-        };
-
-        onSnapshot(collection(db, "products"), (snap) => {
-            const list = document.getElementById('admin-product-list');
-            list.innerHTML = snap.docs.map(d => {
-                const p = d.data();
-                return `<div class="bg-white p-4 flex justify-between items-center shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <img src="${p.img}" class="w-12 h-12 object-cover">
-                        <div><p class="font-bold">${p.name}</p><p class="text-sm text-gray-500">NT$ ${p.price}</p></div>
-                    </div>
-                    <button onclick="deleteProduct('${d.id}')" class="text-red-500">下架</button>
-                </div>`;
-            }).join('');
-        });
-
-        // --- 訂單讀取 ---
-        onSnapshot(collection(db, "orders"), (snap) => {
-            const list = document.getElementById('admin-order-list');
-            list.innerHTML = snap.docs.map(d => {
-                const o = d.data();
-                return `<div class="bg-white p-4 rounded shadow-sm">
-                    <p class="font-bold text-lg">客戶：${o.name || '未提供'}</p>
-                    <p class="text-sm text-gray-500">時間：${o.timestamp?.toDate().toLocaleString() || ''}</p>
-                    <div class="my-2 border-y py-2 text-sm">${o.items.map(i => `${i.name} x ${i.qty}`).join('<br>')}</div>
-                    <p class="font-bold text-amber-800">總計：NT$ ${o.total}</p>
-                </div>`;
-            }).join('');
-        });
-
-        // --- 留言讀取 ---
-        onSnapshot(collection(db, "inbox"), (snap) => {
-            const list = document.getElementById('admin-inbox-list');
-            list.innerHTML = snap.docs.map(d => {
-                const m = d.data();
-                return `<div class="bg-white p-4 rounded shadow-sm border-l-4 border-stone-800">
-                    <p class="text-xs font-bold text-stone-500 uppercase">${m.type}</p>
-                    <p class="my-2">${m.content}</p>
-                    <p class="text-xs text-gray-400">來自：${m.email || '匿名'}</p>
-                </div>`;
-            }).join('');
-        });
     </script>
 </body>
 </html>
