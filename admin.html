@@ -62,19 +62,49 @@
 
         // 監聽訂單
         // 監聽訂單
+// admin.html 監聽訂單區塊
 onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
     const orderList = document.getElementById('order-list');
     let html = "";
+
     snap.docs.forEach(doc => {
         const d = doc.data();
+        
+        // 1. 處理「內容」部分：遍歷 items 陣列，只提取名稱和價格
+        let itemsHTML = "";
+        if (d.items && Array.isArray(d.items)) {
+            itemsHTML = d.items.map(item => 
+                `<div style="display:flex; justify-content:space-between; margin-bottom:2px; font-size:0.9em;">
+                    <span>• ${item.name || '商品'}</span>
+                    <span>$${item.price || 0}</span>
+                </div>`
+            ).join("");
+        } else {
+            itemsHTML = "<div>無商品資訊</div>";
+        }
+
+        // 2. 組合顯示模板：包含人、址、內容、總額
         html += `
-            <div style="border:1px solid #eab308; padding:10px; margin-bottom:10px; background:#fffdf2;">
-                <b>訂購人：</b>${d.buyerName}<br>
-                <b>地址：</b>${d.buyerAddress}<br>
-                <b>內容：</b>${JSON.stringify(d.items)}
+            <div style="border:1px solid #eab308; padding:12px; margin-bottom:15px; background:#fffdf2; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                <div style="margin-bottom:8px;">
+                    <b>👤 訂購人：</b>${d.buyerName || '未填寫'}<br>
+                    <b>📍 地址：</b>${d.buyerAddress || '未填寫'}
+                </div>
+                
+                <div style="border-top:1px dashed #ccc; border-bottom:1px dashed #ccc; padding:8px 0; margin:8px 0;">
+                    <b style="font-size:0.85em; color:#666;">📜 訂購內容：</b><br>
+                    ${itemsHTML}
+                </div>
+
+                <div style="text-align:right; font-weight:bold; color:#e63946; font-size:1.1em;">
+                    💰 總金額：$${d.total || 0}
+                </div>
             </div>`;
     });
-    if(orderList) orderList.innerHTML = html || "目前無訂單";
+
+    if (orderList) {
+        orderList.innerHTML = html || '<div style="text-align:center; color:gray;">目前無訂單</div>';
+    }
 });
 // --- 監聽訊息 (分流) ---
     onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
