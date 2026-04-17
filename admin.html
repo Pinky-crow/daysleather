@@ -67,29 +67,31 @@
             `).join('');
         });
 
-        // 監聽訊息 (分流)
-onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
-    const customList = document.getElementById('custom-list');
-    const qaList = document.getElementById('qa-list');
-    
-    let customHTML = "";
-    let qaHTML = "";
-
-    snap.docs.forEach(doc => {
-        const d = doc.data();
-        // 只要這條訊息有 content，我們就把它秀出來
-        const card = `
-            <div class="p-3 bg-stone-50 border rounded shadow-sm mb-2">
-                <div class="text-blue-600 font-bold text-xs">📩 ${d.email || '無信箱'}</div>
-                <div class="text-stone-800 text-sm mt-1">${d.content || '無內容'}</div>
-            </div>`;
+// --- 監聽訊息 (分流) ---
+    onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
+        const customList = document.getElementById('custom-list');
+        const qaList = document.getElementById('qa-list');
         
-        // 根據 type 分流
-        if (d.type === "custom") {
-            customHTML += card;
-        } else {
-            qaHTML += card;
-        }
+        let customHTML = "";
+        let qaHTML = "";
+
+        snap.docs.forEach(doc => {
+            const d = doc.data();
+            const card = `
+                <div class="p-3 bg-stone-50 border rounded shadow-sm mb-2">
+                    <div class="text-blue-600 font-bold text-xs">📩 ${d.email || '無信箱'}</div>
+                    <div class="text-stone-800 text-sm mt-1">${d.content || '無內容'}</div>
+                </div>`;
+            
+            if (d.type === "custom") {
+                customHTML += card;
+            } else {
+                qaHTML += card;
+            }
+        });
+
+        if (customList) customList.innerHTML = customHTML || '<p class="text-gray-400">目前無訂製需求</p>';
+        if (qaList) qaList.innerHTML = qaHTML || '<p class="text-gray-400">目前無 QA 諮詢</p>';
     });
     </script>
 </body>
