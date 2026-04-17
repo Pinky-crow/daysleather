@@ -284,7 +284,38 @@
                 <textarea id="qa-msg" class="w-full border p-4" placeholder="在這裡留言..."></textarea>
                 <button onclick="sendQA()" class="mt-4 px-8 py-2 bg-stone-800 text-white rounded">傳送</button>
             </div>
+        </div><div id="qa" class="page py-20 px-6">
         </div>
+
+    <div id="admin" class="page py-20 px-6">
+        <div class="max-w-6xl mx-auto space-y-12">
+            <h2 class="text-3xl font-bold border-b pb-4">DAY 's Leather 管理後台</h2>
+            
+            <section class="bg-white p-6 rounded shadow">
+                <h3 class="font-bold mb-4 text-xl text-amber-900">📦 商品管理 (新增商品)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="new-name" placeholder="商品名稱" class="border p-2">
+                    <input type="number" id="new-price" placeholder="價格" class="border p-2">
+                    <input type="text" id="new-cat" placeholder="分類 (wallet/bag)" class="border p-2">
+                    <input type="text" id="new-img1" placeholder="圖片網址 1 (Imgur)" class="border p-2">
+                    <textarea id="new-desc" placeholder="商品描述" class="border p-2 md:col-span-2"></textarea>
+                    <button onclick="adminAddProduct()" class="bg-stone-800 text-white py-2 md:col-span-2 hover:bg-black">確認上傳商品</button>
+                </div>
+            </section>
+
+            <section class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded shadow">
+                    <h3 class="font-bold mb-4 text-xl text-blue-900">📋 收到訂單</h3>
+                    <div id="admin-orders" class="space-y-4 text-sm">正在載入訂單...</div>
+                </div>
+                <div class="bg-white p-6 rounded shadow">
+                    <h3 class="font-bold mb-4 text-xl text-green-900">💬 諮詢 & 問題</h3>
+                    <div id="admin-msgs" class="space-y-4 text-sm">正在載入訊息...</div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <footer ...> ... </footer>
     </div>
 
     <footer style="background-color: var(--footer-bg); color: var(--footer-text);" class="py-20 px-6 text-center">
@@ -296,7 +327,7 @@
     
     <span class="cursor-pointer hover-zoom" onclick="copyEmail('daysleather@gmail.com')">GMAIL</span>
         </div>
-        <p class="text-[10px] opacity-30">&copy; 2026 DAY 's Leather. ALL RIGHTS RESERVED.</p>
+        <p class="text-[10px] opacity-30">&copy; 2026 DAY 's Leather. ALL RIGHTS RESERVED<span onclick="showPage('admin')" style="cursor:pointer">.</span></p>
     </footer>
 
     <div id="img-modal" onclick="this.style.display='none'"><img id="modal-img"></div>
