@@ -327,69 +327,62 @@
     </footer>
 
     <div id="img-modal" onclick="this.style.display='none'"><img id="modal-img"></div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
+        authDomain: "adadd-65e14.firebaseapp.com",
+        projectId: "adadd-65e14",
+        storageBucket: "adadd-65e14.firebasestorage.app",
+        messagingSenderId: "566570388047",
+        appId: "1:566570388047:web:b5b1188527ad1828dff83a",
+        measurementId: "G-J705Q73J0R"
+    };
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
-            authDomain: "adadd-65e14.firebaseapp.com",
-            projectId: "adadd-65e14",
-            storageBucket: "adadd-65e14.firebasestorage.app",
-            messagingSenderId: "566570388047",
-            appId: "1:566570388047:web:b5b1188527ad1828dff83a",
-            measurementId: "G-J705Q73J0R"
-        };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    // --- 自動抓取並顯示商品 ---
+    onSnapshot(collection(db, "products"), (snapshot) => {
+        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const grid = document.getElementById('product-grid');
+        if (grid) {
+            grid.innerHTML = products.map(p => `
+                <div class="hover-zoom bg-white p-4 rounded shadow-sm text-center cursor-pointer" onclick="openDetail('${p.id}')">
+                    <img src="${p.imgs ? p.imgs[0] : ''}" class="h-60 w-full object-cover mb-4">
+                    <h4 class="font-bold">${p.name}</h4>
+                    <p class="opacity-50">NT$ ${p.price}</p>
+                </div>
+            `).join('');
+        }
+        // 把資料存到 window 讓其他功能可以用
+        window.allProducts = products;
+    });
 
-        // --- 功能函數 (只保留一份) ---
-        window.showPage = (id) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            const target = document.getElementById(id);
-            if(target) target.classList.add('active');
-            window.scrollTo(0,0);
-        };
+    // --- 頁面切換功能 ---
+    window.showPage = (id) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById(id);
+        if(target) target.classList.add('active');
+        window.scrollTo(0,0);
+    };
 
-        window.copyEmail = (email) => {
-            navigator.clipboard.writeText(email).then(() => alert('已複製: ' + email));
-        };
+    // --- 商品詳情功能 ---
+    window.openDetail = (id) => {
+        const item = window.allProducts.find(p => p.id === id);
+        if(!item) return;
+        document.getElementById('det-img').src = item.imgs[0];
+        document.getElementById('det-name').innerText = item.name;
+        document.getElementById('det-price').innerText = `NT$ ${item.price}`;
+        document.getElementById('det-desc').innerText = item.desc;
+        window.showPage('item-detail');
+    };
 
-        window.adminAddProduct = async () => {
-            const name = document.getElementById('new-name').value;
-            const price = Number(document.getElementById('new-price').value);
-            if(!name || !price) return alert('請填寫完整');
-            try {
-                await addDoc(collection(db, "products"), {
-                    name, price,
-                    category: document.getElementById('new-cat').value,
-                    imgs: [document.getElementById('new-img1').value],
-                    desc: document.getElementById('new-desc').value,
-                    createdAt: serverTimestamp()
-                });
-                alert('商品已上傳');
-                location.reload();
-            } catch(e) { alert('失敗: ' + e); }
-        };
-
-        // 監聽訂單與訊息
-        onSnapshot(collection(db, "orders"), (snap) => {
-            const container = document.getElementById('admin-orders');
-            if(container) container.innerHTML = snap.docs.map(doc => {
-                const d = doc.data();
-                return `<div class="p-2 border-b">訂單: NT$${d.total} (${d.status || '未處理'})</div>`;
-            }).join('');
-        });
-
-        onSnapshot(collection(db, "messages"), (snap) => {
-            const container = document.getElementById('admin-msgs');
-            if(container) container.innerHTML = snap.docs.map(doc => {
-                const d = doc.data();
-                return `<div class="p-2 border-b">詢問: ${d.content}</div>`;
-            }).join('');
-        });
-    </script>
+    window.copyEmail = (email) => {
+        navigator.clipboard.writeText(email).then(() => alert('已複製: ' + email));
+    };
+</script>
 </body>
 </html>
