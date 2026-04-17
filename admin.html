@@ -41,6 +41,16 @@
                 <h3 class="font-bold mb-4">🔔 最近動態</h3>
                 <div id="status" class="text-sm text-slate-500">正在連線至資料庫...</div>
             </section>
+            <div class="grid md:grid-cols-2 gap-6 mt-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold mb-4 text-amber-900 border-b pb-2">📋 最近訂單</h3>
+                    <div id="order-list" class="space-y-3 text-sm text-slate-500 italic">正在載入數據...</div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold mb-4 text-green-900 border-b pb-2">💬 客戶訊息</h3>
+                    <div id="msg-list" class="space-y-3 text-sm text-slate-500 italic">正在載入數據...</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -80,6 +90,32 @@
                 alert('錯誤：' + e.message);
             }
         };
+        // --- 這裡開始是自動讀取訂單與訊息的功能 ---
+        import { onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 1. 自動讀取訂單
+        const qOrders = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        onSnapshot(qOrders, (snap) => {
+            const el = document.getElementById('order-list');
+            if (el) el.innerHTML = snap.docs.map(doc => `
+                <div class="p-3 bg-slate-50 rounded border border-slate-100 shadow-sm">
+                    <div class="font-bold text-amber-800">總計: $${doc.data().total || 0}</div>
+                    <div class="text-[10px] text-slate-400 mt-1 italic">單號: ${doc.id.slice(-5)}</div>
+                </div>
+            `).join('') || '目前沒有訂單';
+        });
+
+        // 2. 自動讀取訊息
+        const qMsgs = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+        onSnapshot(qMsgs, (snap) => {
+            const el = document.getElementById('msg-list');
+            if (el) el.innerHTML = snap.docs.map(doc => `
+                <div class="p-3 bg-slate-50 rounded border border-slate-100 shadow-sm">
+                    <div class="text-slate-700">${doc.data().content || '空白內容'}</div>
+                    <div class="text-[10px] text-slate-400 mt-2 italic">${doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000).toLocaleString() : ''}</div>
+                </div>
+            `).join('') || '目前沒有訊息';
+        });
     </script>
 </body>
 </html>
