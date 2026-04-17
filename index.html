@@ -577,7 +577,8 @@ window.finishOrder = async () => {
         alert('訂單已提交！');
     } catch (e) { alert('下單失敗'); }
 };
-
+window.sendCustom = sendCustom; 
+window.sendQA = sendQA;
     // 原本就有的掛載語句
     // 將函數掛載到 window，讓 HTML 的 onclick 可以用到
     window.showPage = showPage;
