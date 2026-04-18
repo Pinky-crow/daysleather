@@ -44,7 +44,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         const firebaseConfig = {
             apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
             authDomain: "adadd-65e14.firebaseapp.com",
@@ -55,7 +55,7 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
+        const auth = getAuth(app);
         // 上架功能
         window.uploadProduct = async () => {
             const name = document.getElementById('p-name').value;
@@ -165,30 +165,18 @@ if (d.items && Array.isArray(d.items)) {
         if (qaList) qaList.innerHTML = qaHTML || '<p class="text-gray-400">目前無 QA 諮詢</p>';
     });
         // 加入登入功能
+// 登入功能
 window.login = function() {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pw').value;
-    const msg = document.getElementById('msg');
+    signInWithEmailAndPassword(auth, e, p)
+        .then(() => location.reload()) // 成功就刷頁面
+        .catch(err => document.getElementById('msg').innerText = "失敗: " + err.message);
+};
 
-    // 直接使用全域的 firebase 物件 (因為你 HTML 前面已經載入過了)
-    firebase.auth().signInWithEmailAndPassword(e, p)
-        .then((userCredential) => {
-            console.log("登入成功！");
-            document.getElementById('auth-box').style.display = 'none';
-            // 登入後手動刷新一次資料監聽，或者直接讓頁面重新載入，資料就會噴出來了
-            location.reload(); 
-        })
-        .catch((error) => {
-            msg.innerText = "登入失敗: " + error.message;
-            console.error(error);
-        });
-}
-
-// 監聽狀態：如果已經登入過，就直接隱藏框框
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        document.getElementById('auth-box').style.display = 'none';
-    }
+// 檢查狀態
+onAuthStateChanged(auth, (user) => {
+    if (user) document.getElementById('auth-box').style.display = 'none';
 });
     </script>
 </body>
