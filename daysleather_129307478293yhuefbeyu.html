@@ -164,6 +164,24 @@ if (d.items && Array.isArray(d.items)) {
         if (customList) customList.innerHTML = customHTML || '<p class="text-gray-400">目前無訂製需求</p>';
         if (qaList) qaList.innerHTML = qaHTML || '<p class="text-gray-400">目前無 QA 諮詢</p>';
     });
+        // 加入登入功能
+window.login = function() {
+    const e = document.getElementById('email').value;
+    const p = document.getElementById('pw').value;
+    // 因為你用的是模組化引入，這邊直接呼叫 Firebase Auth
+    import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js').then(({ getAuth, signInWithEmailAndPassword, onAuthStateChanged }) => {
+        const auth = getAuth();
+        signInWithEmailAndPassword(auth, e, p)
+            .catch(err => document.getElementById('msg').innerText = "失敗: " + err.message);
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('auth-box').style.display = 'none';
+                // 登入成功，這時候你原本的資料監聽就會自動跑出來了
+            }
+        });
+    });
+}
     </script>
 </body>
 </html>
