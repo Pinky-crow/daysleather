@@ -203,6 +203,7 @@
                 </select>
                 <input type="email" id="f-email" placeholder="Gmail (必填)" class="w-full border p-2">
                 <p id="err-email" class="error-msg">尚未填寫完成</p>
+				<input type="text" class="trap-field" style="display:none" tabindex="-1" autocomplete="off">
                 <input type="text" id="f-name" placeholder="收件姓名 (必填)" class="w-full border p-2">
                 <p id="err-name" class="error-msg">尚未填寫完成</p>
                 <input type="tel" id="f-phone" placeholder="電話 (必填)" class="w-full border p-2">
@@ -253,6 +254,7 @@
                 <p id="err-cus-email" class="error-msg">尚未填寫</p>
                 <textarea id="custom-msg" rows="5" placeholder="訂製需求詳情 (必填)" class="w-full border p-3"></textarea>
                 <p id="err-cus-req" class="error-msg">尚未填寫</p>
+				<input type="text" class="trap-field" style="display:none" tabindex="-1" autocomplete="off">
                 <button onclick="sendCustom()" class="w-full py-4 text-white font-bold hover-zoom" style="background-color: var(--buy-btn-bg);">傳送訂製需求</button>
             </div>
         </div>
@@ -303,6 +305,7 @@
             <div class="mt-20 border-t pt-10">
                 <h4 class="font-bold mb-4">詢問您好奇的部分</h4>
                 <textarea id="qa-msg" class="w-full border p-4" placeholder="在這裡留言..."></textarea>
+				<input type="text" class="trap-field" style="display:none" tabindex="-1" autocomplete="off">
                 <button onclick="sendQA()" class="mt-4 px-8 py-2 bg-stone-800 text-white rounded">傳送</button>
             </div>
         </div>
@@ -325,7 +328,7 @@
     // 引入 Firebase 核心與 Firestore 資料庫功能
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+	window.pageLoadTime = Date.now(); // 記錄進入網頁的時間
     // ✅ 修正 1：補齊了 measurementId 漏掉的引號
     const firebaseConfig = {
   apiKey: "AIzaSyBWyGyH24wruA_dNiUiG6sF8OvsoBL96x0",
@@ -490,6 +493,17 @@ document.querySelectorAll('.dropdown-link').forEach(link => {
 // 修改第 476 行開始的內容
 // --- 訂製需求傳送功能 ---
 async function sendCustom() {
+	// --- 機器人防護開始 ---
+const traps = document.querySelectorAll('.trap-field');
+let isRobot = false;
+traps.forEach(t => { if(t.value !== "") isRobot = true; }); // 檢查陷阱
+
+const timeSpent = (Date.now() - window.pageLoadTime) / 1000;
+if (timeSpent < 3 || isRobot) {
+    console.log("偵測到異常操作，已攔截");
+    return; // 終止執行，不會傳送到 Firebase
+}
+// --- 機器人防護結束 ---
     const emailField = document.getElementById('custom-email');
     const msgField = document.getElementById('custom-msg');
 
@@ -519,6 +533,17 @@ async function sendCustom() {
 
 // --- QA 詢問傳送功能 ---
 async function sendQA() {
+	// --- 機器人防護開始 ---
+const traps = document.querySelectorAll('.trap-field');
+let isRobot = false;
+traps.forEach(t => { if(t.value !== "") isRobot = true; }); // 檢查陷阱
+
+const timeSpent = (Date.now() - window.pageLoadTime) / 1000;
+if (timeSpent < 3 || isRobot) {
+    console.log("偵測到異常操作，已攔截");
+    return; // 終止執行，不會傳送到 Firebase
+}
+// --- 機器人防護結束 ---
     const qaField = document.getElementById('qa-msg');
     if (!qaField || !qaField.value.trim()) {
         alert("請輸入問題內容");
@@ -540,6 +565,17 @@ async function sendQA() {
     }
 }
 async function sendOrder() {
+	// --- 機器人防護開始 ---
+const traps = document.querySelectorAll('.trap-field');
+let isRobot = false;
+traps.forEach(t => { if(t.value !== "") isRobot = true; }); // 檢查陷阱
+
+const timeSpent = (Date.now() - window.pageLoadTime) / 1000;
+if (timeSpent < 3 || isRobot) {
+    console.log("偵測到異常操作，已攔截");
+    return; // 終止執行，不會傳送到 Firebase
+}
+// --- 機器人防護結束 ---
     // 1. 抓取資料
     const name = document.getElementById('f-name')?.value;
     const phone = document.getElementById('f-phone')?.value;
