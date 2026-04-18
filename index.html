@@ -764,16 +764,23 @@ window.finishOrder = async () => {
     panel.classList.toggle('active');
 };
 window.showPage = function(pageId) {
-    // 1. 隱藏與顯示的邏輯不變
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    const target = document.getElementById(pageId);
-    if (target) target.style.display = 'block';
+    // 1. 隱藏所有 class="page" 的區塊
+    document.querySelectorAll('.page').forEach(page => {
+        page.style.display = 'none';
+    });
 
-    // 2. 這是關鍵：把網址改成像真的一樣，但不會跳轉頁面
-    // 它會把網址從 daysleather.com 變成 daysleather.com/products
-    const newPath = pageId === 'home' ? '/' : '/' + pageId;
-    window.history.pushState({ pageId }, '', newPath);
+    // 2. 顯示點選的那個區塊
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.style.display = 'block';
+    }
 
+    // 3. 重點：強制更新網址列的 Hash (這行就是讓網址變動的關鍵)
+    if (location.hash !== '#' + pageId) {
+        history.pushState(null, null, '#' + pageId);
+    }
+
+    // 4. 讓頁面回到最上方
     window.scrollTo(0, 0);
 };
 
