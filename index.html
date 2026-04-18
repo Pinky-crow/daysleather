@@ -763,23 +763,20 @@ window.finishOrder = async () => {
     const panel = document.getElementById('nav-panel');
     panel.classList.toggle('active');
 };
-	window.showPage = function(pageId) {
-    // 1. 抓到所有 class 為 "page" 的區塊，全部隱藏
-    // (請確保你的每個主要區塊如 #home, #products, #item-detail 都有 class="page")
-    document.querySelectorAll('.page').forEach(page => {
-        page.style.display = 'none';
-    });
+window.showPage = function(pageId) {
+    // 1. 隱藏所有頁面
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    
+    // 2. 顯示目標頁面
+    const target = document.getElementById(pageId);
+    if (target) target.style.display = 'block';
 
-    // 2. 顯示指定的頁面
-    const targetPage = document.getElementById(pageId);
-    if (targetPage) {
-        targetPage.style.display = 'block';
+    // 3. 重點：讓網址列變成 daysleather.com/#products
+    if (location.hash !== '/' + pageId) {
+        location.hash = pageId;
     }
 
-    // 3. 讓網址列跟著動 (加上 #pageId)
-    location.hash = pageId;
-
-    // 4. 換頁後自動回到最上面
+    // 4. 自動捲回頂部
     window.scrollTo(0, 0);
 };
 
