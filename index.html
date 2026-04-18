@@ -401,10 +401,14 @@ document.querySelectorAll('.dropdown-link').forEach(link => {
         document.getElementById('myDropdown').classList.remove('show');
     });
 });
-    function filterCat(cat) {
-        if(cat==='all') renderItems(products);
-        else renderItems(products.filter(p=>p.category===cat));
+function filterCat(cat) {
+    if (cat === 'all') {
+        renderItems(products);
+    } else {
+        // 【關鍵修改】改成檢查陣列是否包含該分類
+        renderItems(products.filter(p => p.category && p.category.includes(cat)));
     }
+}
 
     function openDetail(id) {
         // ✅ 修正 3：Firebase ID 是字串，確保比對正確
