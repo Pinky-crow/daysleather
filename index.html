@@ -773,7 +773,7 @@ window.showPage = function(pageId) {
 
     // 3. 重點：讓網址列變成 daysleather.com/#products
     if (location.hash !== '/' + pageId) {
-        location.hash = pageId;
+window.history.pushState(null, null, '/' + pageId);
     }
 
     // 4. 自動捲回頂部
