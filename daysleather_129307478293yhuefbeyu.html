@@ -168,20 +168,28 @@ if (d.items && Array.isArray(d.items)) {
 window.login = function() {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pw').value;
-    // 因為你用的是模組化引入，這邊直接呼叫 Firebase Auth
-    import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js').then(({ getAuth, signInWithEmailAndPassword, onAuthStateChanged }) => {
-        const auth = getAuth();
-        signInWithEmailAndPassword(auth, e, p)
-            .catch(err => document.getElementById('msg').innerText = "失敗: " + err.message);
-        
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('auth-box').style.display = 'none';
-                // 登入成功，這時候你原本的資料監聽就會自動跑出來了
-            }
+    const msg = document.getElementById('msg');
+
+    // 直接使用全域的 firebase 物件 (因為你 HTML 前面已經載入過了)
+    firebase.auth().signInWithEmailAndPassword(e, p)
+        .then((userCredential) => {
+            console.log("登入成功！");
+            document.getElementById('auth-box').style.display = 'none';
+            // 登入後手動刷新一次資料監聽，或者直接讓頁面重新載入，資料就會噴出來了
+            location.reload(); 
+        })
+        .catch((error) => {
+            msg.innerText = "登入失敗: " + error.message;
+            console.error(error);
         });
-    });
 }
+
+// 監聽狀態：如果已經登入過，就直接隱藏框框
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        document.getElementById('auth-box').style.display = 'none';
+    }
+});
     </script>
 </body>
 </html>
