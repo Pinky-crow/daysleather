@@ -614,11 +614,11 @@ if (timeSpent < 3 || isRobot) {
     const phone = document.getElementById('f-phone')?.value;
     const address = document.getElementById('f-addr')?.value;
     const email = document.getElementById('f-email')?.value;
-
+	const payMethod = document.getElementById('pay-method').value;
+    let bankInfo = "N/A"; 
     if (!name || !address || !phone) return alert("請填寫姓名、電話與地址");
     if (cart.length === 0) return alert("購物車是空的");
-const payMethod = document.getElementById('pay-method').value;
-    let bankInfo = "N/A"; 
+
 
     // 2. 匯款攔截邏輯
     if (payMethod === 'bank') {
@@ -636,8 +636,6 @@ const payMethod = document.getElementById('pay-method').value;
         bankInfo = lastFive; // 驗證成功，紀錄末五碼
     }
 
-    if (!name || !address || !phone) return alert("請填寫姓名、電話與地址");
-    if (cart.length === 0) return alert("購物車是空的");
 
     // ... 接下來是你原本計算金額與 try { addDoc ... } 的部分
     // ⭐ 關鍵修正：計算「單價 x 數量」的總金額
