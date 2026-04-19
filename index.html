@@ -399,8 +399,8 @@
         else if(sort==='latest') sorted.sort((a,b)=>new Date(b.date)-new Date(a.date));
 
         grid.innerHTML = sorted.map(p => `
-<div class="hover-zoom p-4 rounded shadow-sm hover:shadow-lg transition-shadow transition-all duration-500" 
-     style="background-color: #FCF9F2;" 
+<div class="hover-zoom p-4 rounded shadow-sm text-center cursor-pointer" 
+     style="background-color: #FDF5E6;" 
      onclick="openDetail('${p.id}')">
                 <img src="${(p.imgs && p.imgs[0]) ? p.imgs[0] : 'https://via.placeholder.com/300'}" class="h-60 w-full object-cover mb-4" style="background-color: var(--main-bg);">
                 <h4 class="font-bold">${p.name}</h4>
