@@ -666,6 +666,7 @@ if (timeSpent < 3 || isRobot) {
             buyerPhone: phone,
             buyerAddress: address,
             buyerEmail: email || "未填寫",
+			buyernote: note || "未填寫",
             items: JSON.parse(JSON.stringify(cart)), // 確保數量欄位一起送出
             total: currentTotal, // 使用加權後的總金額
 			bankLastFive: bankInfo,
