@@ -229,7 +229,14 @@
     <p class="font-bold">銀行：(007) 第一銀行</p>
     <p>帳號：241-55-366945</p>
     <p class="mt-4 text-xl font-bold">付款總額：NT$ <span id="final-amt"></span></p>
-
+<div class="mt-4 text-left">
+    <label class="block text-sm font-bold text-stone-800 mb-1">✍️ 訂單備註 (選填)</label>
+    <textarea id="order_note" 
+              class="w-full p-2 border rounded outline-none focus:border-stone-800 transition-colors" 
+              style="background-color: #F5E6D3; border-color: #D2B48C;" 
+              rows="2" 
+              placeholder="如有特殊需求請在此留言..."></textarea>
+</div>
     <div class="mt-6 p-4 bg-white border-l-4 border-[#8B5A2B]">
         <label class="block text-sm font-bold mb-1">請輸入匯款帳號末 5 碼：</label>
         <input type="text" id="bank-last-five" maxlength="5" 
@@ -611,6 +618,8 @@ if (timeSpent < 3 || isRobot) {
     const address = document.getElementById('f-addr')?.value;
     const email = document.getElementById('f-email')?.value;
 	const payMethod = document.getElementById('pay-method').value;
+	const note = document.getElementById('order_note').value;
+// 然後把 note 加入到你的訂單資料物件中
     let bankInfo = "N/A"; 
     if (!name || !address || !phone) return alert("請填寫姓名、電話與地址");
     if (cart.length === 0) return alert("購物車是空的");
