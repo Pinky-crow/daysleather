@@ -190,13 +190,7 @@
     </div>
 
     <div id="cart_view" class="page py-20 px-6">
-		<div class="max-w-7xl mx-auto px-6 py-4">
-<button onclick="showPage('products'); location.hash='products';" class="flex items-center text-stone-500 hover:text-black transition-all group">
-	<span class="mr-2 transform group-hover:-translate-x-1 transition-transform">←</span>
-        <span class="text-sm tracking-widest uppercase">返回產品列表</span>
-    </button>
-</div>
-        <div class="max-w-3xl mx-auto p-8 rounded shadow-sm" style="background-color: #FDF5E6;">
+        <div class="max-w-3xl mx-auto bg-white p-8 rounded shadow-sm">
             <div class="progress-line">
                 <div id="ps-1" class="prog-step active">確認訂單</div>
                 <div id="ps-2" class="prog-step">付款及地址</div>
@@ -216,7 +210,7 @@
                 <h3 class="font-bold border-b pb-2">配送與支付資訊</h3>
                 <select id="pay-method" class="w-full border p-3">
                     <option value="bank">銀行匯款</option>
-                    <option value="paypal">目前無法使用PayPal</option>
+                    <option value="paypal">PayPal</option>
                 </select>
                 <input type="email" id="f-email" placeholder="Gmail (必填)" class="w-full border p-2">
                 <p id="err-email" class="error-msg">尚未填寫完成</p>
@@ -231,20 +225,17 @@
             </div>
 
             <div id="step-3" class="hidden text-center space-y-6">
-               <div id="info-bank" class="hidden bg-stone-100 p-6 rounded text-left">
-   				 <p class="font-bold">銀行：(007) 第一銀行</p>
-    			 <p>帳號：241-55-366945</p>
-  			     <p class="mt-4 text-xl font-bold">付款總額：NT$ <span id="final-amt"></span></p>
+                <div id="info-bank" class="hidden bg-stone-100 p-6 rounded text-left">
+    <p class="font-bold">銀行：(007) 第一銀行</p>
+    <p>帳號：241-55-366945</p>
+    <p class="mt-4 text-xl font-bold">付款總額：NT$ <span id="final-amt"></span></p>
 
-    			 <div class="mt-6 p-4 border-l-4 border-[#8B5A2B]" style="background-color: #FDF5E6;">
-   				 <p class="text-sm font-bold text-stone-800">📌 匯款提醒：</p>
-			    </div>
-        		 <label class="block text-sm font-bold mb-2">1. 請先完成匯款</label>
-       			 <label class="block text-sm font-bold mb-2">2. 輸入您的帳號末 5 碼：</label>
-       			 <input type="text" id="bank-last-five" maxlength="5" 
-                 class="w-full p-2 border rounded" placeholder="例如：12345">
+    <div class="mt-6 p-4 bg-white border-l-4 border-[#8B5A2B]">
+        <label class="block text-sm font-bold mb-1">請輸入匯款帳號末 5 碼：</label>
+        <input type="text" id="bank-last-five" maxlength="5" 
+               class="w-full p-2 border rounded mb-3" placeholder="例如：12345">
         
-        <div class="mt-3 flex items-center">
+        <div class="flex items-center">
             <input type="checkbox" id="confirm-paid-check" class="mr-2">
             <label for="confirm-paid-check" class="text-xs text-gray-600">我已核對金額並完成匯款</label>
         </div>
@@ -256,6 +247,7 @@
                 </div>
                 <button onclick="sendOrder()" class="w-full py-4 text-white font-bold" style="background-color: var(--buy-btn-bg);">結帳完成</button>
             </div>
+
 
             <div id="step-4" class="hidden text-center py-10">
                 <h2 class="text-3xl font-bold mb-4">交易完成！</h2>
@@ -278,8 +270,7 @@
     </div>
 
     <div id="custom" class="page py-20 px-6">
-        <div class="max-w-2xl mx-auto p-10 rounded shadow-sm" style="background-color: #FDF5E6;">
-    </div>
+        <div class="max-w-2xl mx-auto bg-white p-10 rounded shadow-sm">
             <h2 class="text-2xl font-bold mb-8 text-center">皮革商品訂製諮詢</h2>
             <div class="space-y-4">
                 <input type="email" id="custom-email" placeholder="您的 Gmail (必填)" class="w-full border p-3">
